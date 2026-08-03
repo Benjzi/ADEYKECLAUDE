@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+    <meta name="theme-color" content="#123a5c" />
+    <title>Adey CP Humanitarian Association — Every Child Deserves to Thrive</title>
+    <meta name="description" content="Adey CP walks alongside children with Cerebral Palsy and their families across Ethiopia — providing therapy, dignity, community, and a future full of possibility." />
+    <meta name="author" content="Adey CP Humanitarian Association" />
+    <meta property="og:title" content="Adey CP — Every Child Deserves to Thrive" />
+    <meta property="og:description" content="Ethiopia's leading humanitarian association supporting children with Cerebral Palsy." />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="/og-image.jpg" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="/og-image.jpg" />
+  </head>
+  <body>
+    <div id="root">
+      <!--
+        Shown instantly, before any JS has loaded/executed, so the tab is
+        never blank-white while the app bundle downloads. React replaces
+        this the moment it mounts.
+      -->
+      <div style="display:flex;min-height:100vh;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:#fff;font-family:system-ui,sans-serif;">
+        <img src="/favicon-48x48.png" alt="" width="56" height="56" style="border-radius:9999px;animation:adey-pulse 1.4s ease-in-out infinite;" />
+        <div style="height:4px;width:160px;overflow:hidden;border-radius:9999px;background:#e5e7eb;">
+          <div style="height:100%;width:33%;border-radius:9999px;background:#2b7fbf;animation:adey-bar 1.1s ease-in-out infinite;"></div>
+        </div>
+      </div>
+      <style>
+        @keyframes adey-pulse { 0%,100%{opacity:1} 50%{opacity:.45} }
+        @keyframes adey-bar { 0%{transform:translateX(-120%)} 100%{transform:translateX(340%)} }
+      </style>
+    </div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

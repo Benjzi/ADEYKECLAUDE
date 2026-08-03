@@ -1,0 +1,16 @@
+project_id = "hjcglwesrybxbztaukoc"
+
+# admin-users: called by logged-in admins/editors with their session JWT.
+[functions.admin-users]
+verify_jwt = true
+
+# chapa-init: called from the public /donate page by anonymous visitors.
+# With the new sb_publishable_ key format the client never sends a JWT for
+# unauthenticated calls, so this MUST stay false or donations will 401.
+[functions.chapa-init]
+verify_jwt = false
+
+# chapa-webhook: called directly by Chapa's servers (no Supabase session at
+# all). It verifies the payment itself via Chapa's verify API instead.
+[functions.chapa-webhook]
+verify_jwt = false
