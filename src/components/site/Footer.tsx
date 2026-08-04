@@ -26,6 +26,7 @@ export function Footer() {
 
   return (
     <footer className="mt-24 bg-ink text-white/85">
+      <div className="h-[3px] w-full bg-gradient-to-r from-primary via-accent to-primary" />
       <div className="container-adey grid gap-10 py-16 md:grid-cols-4">
         <div>
           <div className="flex items-center gap-3">
@@ -79,7 +80,20 @@ export function Footer() {
       </div>
       <div className="border-t border-white/10">
         <div className="container-adey flex flex-col items-center justify-between gap-2 py-6 text-xs text-white/60 md:flex-row">
-          <span>{s.copyright_text}</span>
+          <span>
+            {s.copyright_text}
+            {/* Deliberately near-invisible admin entry point. This is
+                obscurity, not security — real protection is the Supabase
+                auth + RLS system, unchanged whether this is found or not. */}
+            <Link
+              to="/auth"
+              aria-label="Admin login"
+              title=""
+              className="ml-1 opacity-[0.04] transition-opacity duration-300 hover:opacity-70 focus-visible:opacity-70"
+            >
+              ·
+            </Link>
+          </span>
           <span>Every child deserves to thrive.</span>
         </div>
       </div>
