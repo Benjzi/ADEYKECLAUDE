@@ -50,6 +50,12 @@ function NewsAdmin() {
     onError: (e: any) => toast.error(e.message ?? "Delete failed"),
   });
 
+  const counts = {
+    published: items.filter((n: any) => n.status === "published").length,
+    draft: items.filter((n: any) => n.status === "draft").length,
+    scheduled: items.filter((n: any) => n.status === "scheduled").length,
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -60,6 +66,21 @@ function NewsAdmin() {
         <Button onClick={() => setEditor({ open: true, id: null })}>
           <Plus className="mr-2 h-4 w-4" /> New article
         </Button>
+      </div>
+
+      <div className="grid grid-cols-3 gap-4">
+        <div className="rounded-2xl border border-border bg-card p-4">
+          <div className="text-2xl font-bold text-emerald-700">{counts.published}</div>
+          <div className="text-xs text-muted-foreground">Published</div>
+        </div>
+        <div className="rounded-2xl border border-border bg-card p-4">
+          <div className="text-2xl font-bold text-amber-700">{counts.scheduled}</div>
+          <div className="text-xs text-muted-foreground">Scheduled</div>
+        </div>
+        <div className="rounded-2xl border border-border bg-card p-4">
+          <div className="text-2xl font-bold text-muted-foreground">{counts.draft}</div>
+          <div className="text-xs text-muted-foreground">Drafts</div>
+        </div>
       </div>
 
       <div className="overflow-hidden rounded-2xl border border-border bg-card">

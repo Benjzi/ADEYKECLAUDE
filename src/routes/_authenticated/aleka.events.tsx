@@ -56,6 +56,21 @@ function EventsAdmin() {
         <Button onClick={() => setEditor({ open: true, id: null })}><Plus className="mr-2 h-4 w-4" /> New event</Button>
       </div>
 
+      <div className="grid grid-cols-3 gap-4">
+        <div className="rounded-2xl border border-border bg-card p-4">
+          <div className="text-2xl font-bold text-primary">{items.filter((e: any) => e.status === "published" && new Date(e.starts_at) >= new Date()).length}</div>
+          <div className="text-xs text-muted-foreground">Upcoming</div>
+        </div>
+        <div className="rounded-2xl border border-border bg-card p-4">
+          <div className="text-2xl font-bold text-muted-foreground">{items.filter((e: any) => new Date(e.starts_at) < new Date()).length}</div>
+          <div className="text-xs text-muted-foreground">Past</div>
+        </div>
+        <div className="rounded-2xl border border-border bg-card p-4">
+          <div className="text-2xl font-bold text-amber-700">{items.filter((e: any) => e.status !== "published").length}</div>
+          <div className="text-xs text-muted-foreground">Draft / Scheduled</div>
+        </div>
+      </div>
+
       <div className="overflow-hidden rounded-2xl border border-border bg-card">
         {items.length === 0 ? (
           <div className="p-10 text-center text-muted-foreground">
