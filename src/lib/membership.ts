@@ -23,3 +23,13 @@ export async function submitMembershipRegistration(input: { full_name?: string; 
   if (error) throw new Error(error.message);
   return { ok: true };
 }
+
+/** Total members = admin-set offset + real Google Form registrations counted
+ * since that offset was set. This is how "admin corrects the count to 60,
+ * then it only grows from there" works: the offset absorbs the gap between
+ * what the site has tracked and the real-world number, and every new
+ * registration just adds 1 on top — it never resets to a raw count. */
+export function useTotalMembers(offset: number) {
+  const { data: registered } = useMembershipCount();
+  return offset + (registered ?? 0);
+}

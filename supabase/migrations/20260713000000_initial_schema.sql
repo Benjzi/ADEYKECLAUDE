@@ -710,3 +710,15 @@ as $$
 $$;
 revoke execute on function public.membership_count() from public;
 grant execute on function public.membership_count() to anon, authenticated;
+
+-- =========================================================
+-- Member stats + third theme option
+-- =========================================================
+alter table public.site_settings drop constraint if exists site_settings_theme_mode_check;
+alter table public.site_settings add constraint site_settings_theme_mode_check check (theme_mode in ('brand','custom','sunshine'));
+
+alter table public.site_settings
+  add column if not exists stat_honorable_members text,
+  add column if not exists stat_common_members text,
+  add column if not exists stat_children_count text,
+  add column if not exists membership_total_offset integer not null default 0;

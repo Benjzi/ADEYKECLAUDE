@@ -1,11 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Users, CheckCircle2, ExternalLink } from "lucide-react";
+import { Users, CheckCircle2, ExternalLink, Award, Baby, Heart } from "lucide-react";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { PageHero } from "@/components/site/PageHero";
 import { useSiteSettings } from "@/lib/site-settings";
-import { useMembershipCount, submitMembershipRegistration } from "@/lib/membership";
+import { useMembershipCount, useTotalMembers, submitMembershipRegistration } from "@/lib/membership";
 
 export const Route = createFileRoute("/membership")({
   head: () => ({
@@ -24,7 +24,7 @@ function embedUrl(url: string) {
 
 function Membership() {
   const settings = useSiteSettings();
-  const { data: count } = useMembershipCount();
+  const totalMembers = useTotalMembers(settings.membership_total_offset);
   const [submitted, setSubmitted] = useState(false);
   const [busy, setBusy] = useState(false);
   const [name, setName] = useState("");
@@ -44,6 +44,13 @@ function Membership() {
     }
   }
 
+  const stats = [
+    { icon: Users, label: "Total Members", value: totalMembers.toLocaleString() },
+    settings.stat_honorable_members ? { icon: Award, label: "Honorable Members", value: settings.stat_honorable_members } : null,
+    settings.stat_common_members ? { icon: Heart, label: "Common Members", value: settings.stat_common_members } : null,
+    settings.stat_children_count ? { icon: Baby, label: "Children Supported", value: settings.stat_children_count } : null,
+  ].filter(Boolean) as { icon: typeof Users; label: string; value: string }[];
+
   return (
     <SiteLayout>
       <PageHero eyebrow="Membership" title="Join our community.">
@@ -52,15 +59,15 @@ function Membership() {
 
       <section className="section-pad">
         <div className="container-adey">
-          {typeof count === "number" ? (
-            <div className="mx-auto mb-10 flex max-w-md items-center justify-center gap-3 rounded-2xl border border-primary/20 bg-primary-soft/40 px-6 py-4 text-center">
-              <Users className="h-6 w-6 text-primary" />
-              <div>
-                <div className="font-heading text-2xl font-bold text-ink">{count.toLocaleString()}</div>
-                <div className="text-xs text-muted-foreground">people have registered as members</div>
+          <div className="mx-auto mb-12 grid max-w-3xl grid-cols-2 gap-4 sm:grid-cols-4">
+            {stats.map((s) => (
+              <div key={s.label} className="rounded-2xl border border-primary/20 bg-primary-soft/40 p-5 text-center">
+                <s.icon className="mx-auto h-6 w-6 text-primary" />
+                <div className="mt-2 font-heading text-2xl font-bold text-ink">{s.value}</div>
+                <div className="text-xs text-muted-foreground">{s.label}</div>
               </div>
-            </div>
-          ) : null}
+            ))}
+          </div>
 
           {!settings.membership_form_url ? (
             <p className="mx-auto max-w-lg text-center text-sm text-muted-foreground">

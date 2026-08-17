@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MediaUpload } from "@/components/admin/MediaUpload";
+import { useMembershipCount } from "@/lib/membership";
 
 export const Route = createFileRoute("/_authenticated/aleka/settings")({
   loader: ({ context }) => context.queryClient.ensureQueryData(siteSettingsQuery),
@@ -105,6 +106,9 @@ function SettingsAdmin() {
   const { data } = useSuspenseQuery(siteSettingsQuery);
   const [form, setForm] = useState<SiteSettings>(data);
   const mut = useUpdateSiteSettings();
+  const { data: registeredCount } = useMembershipCount();
+  const liveRegistered = registeredCount ?? 0;
+  const currentTotal = form.membership_total_offset + liveRegistered;
 
   // keep local form in sync if the row changes underneath us (e.g. another admin saved)
   useEffect(() => setForm(data), [data]);
@@ -255,10 +259,23 @@ function SettingsAdmin() {
                 <div className="mt-2 text-sm font-bold">Custom</div>
                 <div className="text-xs text-muted-foreground">Pick any color below</div>
               </button>
+              <button
+                type="button"
+                onClick={() => { set("theme_mode", "sunshine"); applyThemeMode("sunshine", null); }}
+                className={`flex-1 rounded-xl border-2 p-4 text-left transition ${form.theme_mode === "sunshine" ? "border-primary bg-primary-soft/50" : "border-border hover:bg-muted"}`}
+              >
+                <div className="flex gap-1.5">
+                  <span className="h-6 w-6 rounded-full" style={{ background: "hsl(199 89% 48%)" }} />
+                  <span className="h-6 w-6 rounded-full" style={{ background: "hsl(14 90% 60%)" }} />
+                  <span className="h-6 w-6 rounded-full border border-black/10" style={{ background: "hsl(40 60% 98%)" }} />
+                </div>
+                <div className="mt-2 text-sm font-bold">Sunshine</div>
+                <div className="text-xs text-muted-foreground">Sky blue, coral &amp; cream — brighter &amp; playful</div>
+              </button>
             </div>
           </div>
 
-          <div className={form.theme_mode === "brand" ? "pointer-events-none opacity-40" : ""}>
+          <div className={form.theme_mode !== "custom" ? "pointer-events-none opacity-40" : ""}>
           <div>
             <h3 className="font-heading text-sm font-bold uppercase tracking-wider text-primary">Brand color</h3>
             <p className="mt-1 text-sm text-muted-foreground">
@@ -455,6 +472,39 @@ function SettingsAdmin() {
             In Google Forms: Send → the <strong>&lt;&gt;</strong> embed icon → copy the URL from the iframe's <code>src</code> (or paste the plain form link — the site will add <code>?embedded=true</code> automatically).
             The Membership page shows this form and a "Mark as submitted" button people click after filling it out — that's what's counted, since we can't detect real Google Form submissions from an embedded iframe without a Google API integration.
           </p>
+
+          <div className="border-t border-border pt-6">
+            <h3 className="font-heading text-sm font-bold uppercase tracking-wider text-primary">Member Statistics</h3>
+            <p className="mt-1 text-xs text-muted-foreground">Displayed on the Membership page.</p>
+            <div className="mt-4 grid gap-4 sm:grid-cols-3">
+              <Field label="Honorable Members">
+                <Input value={form.stat_honorable_members ?? ""} onChange={(e) => set("stat_honorable_members", e.target.value)} placeholder="e.g. 5" />
+              </Field>
+              <Field label="Common Members">
+                <Input value={form.stat_common_members ?? ""} onChange={(e) => set("stat_common_members", e.target.value)} placeholder="e.g. 45" />
+              </Field>
+              <Field label="Number of Children">
+                <Input value={form.stat_children_count ?? ""} onChange={(e) => set("stat_children_count", e.target.value)} placeholder="e.g. 120" />
+              </Field>
+            </div>
+
+            <div className="mt-4 rounded-xl border border-primary/20 bg-primary-soft/30 p-4">
+              <Label>Total ADEY CP Association Members</Label>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {liveRegistered} people have registered via the form so far. Set the real current total here — new
+                registrations will keep adding on top of it (e.g. set 60 now, and the next signup makes it 61, not 51).
+              </p>
+              <Input
+                type="number"
+                className="mt-2 max-w-[160px]"
+                value={currentTotal}
+                onChange={(e) => {
+                  const wanted = Number(e.target.value);
+                  if (Number.isFinite(wanted)) set("membership_total_offset", wanted - liveRegistered);
+                }}
+              />
+            </div>
+          </div>
         </TabsContent>
       </Tabs>
 

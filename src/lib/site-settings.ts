@@ -50,7 +50,7 @@ export type SiteSettings = {
   by_numbers_stats: { n: string; l: string }[];
 
   hero_slideshow: string[];
-  theme_mode: "brand" | "custom";
+  theme_mode: "brand" | "custom" | "sunshine";
   goals: string | null;
 
   founder_name: string | null;
@@ -65,6 +65,11 @@ export type SiteSettings = {
   testimony_points: string[];
 
   membership_form_url: string | null;
+
+  stat_honorable_members: string | null;
+  stat_common_members: string | null;
+  stat_children_count: string | null;
+  membership_total_offset: number;
 };
 
 /**
@@ -140,6 +145,11 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   testimony_points: [],
 
   membership_form_url: null,
+
+  stat_honorable_members: null,
+  stat_common_members: null,
+  stat_children_count: null,
+  membership_total_offset: 0,
 };
 
 export async function getSiteSettings(): Promise<SiteSettings> {
@@ -236,9 +246,28 @@ export function applyThemeColor(hex: string | null | undefined) {
   root.style.setProperty("--sidebar-ring", `hsl(${h} ${s}% 48%)`);
 }
 
-/** Applies the full theme decision: 'brand' resets to the stylesheet's navy
- * + gold defaults; 'custom' applies the admin's chosen color. */
-export function applyThemeMode(mode: "brand" | "custom", customColor: string | null | undefined) {
+/** Applies the full theme decision:
+ * - 'brand': resets to the stylesheet's navy + gold defaults
+ * - 'custom': applies the admin's chosen single accent color
+ * - 'sunshine': a distinct, brighter built-in palette (sky blue + coral + cream) */
+export function applyThemeMode(mode: "brand" | "custom" | "sunshine", customColor: string | null | undefined) {
+  const root = document.documentElement;
+  if (mode === "sunshine") {
+    root.style.setProperty("--primary", "hsl(199 89% 48%)");        // bright sky blue
+    root.style.setProperty("--primary-dark", "hsl(199 85% 38%)");
+    root.style.setProperty("--primary-soft", "hsl(199 90% 95%)");
+    root.style.setProperty("--ring", "hsl(199 89% 48%)");
+    root.style.setProperty("--sidebar-primary", "hsl(199 89% 48%)");
+    root.style.setProperty("--sidebar-ring", "hsl(199 89% 48%)");
+    root.style.setProperty("--accent", "hsl(14 90% 60%)");           // warm coral
+    root.style.setProperty("--accent-dark", "hsl(14 85% 50%)");
+    root.style.setProperty("--accent-foreground", "hsl(0 0% 100%)");
+    root.style.setProperty("--background", "hsl(40 60% 98%)");       // warm cream
+    root.style.setProperty("--muted", "hsl(40 45% 95%)");
+    return;
+  }
+  const vars = ["--accent", "--accent-dark", "--accent-foreground", "--background", "--muted"];
+  vars.forEach((v) => root.style.removeProperty(v));
   if (mode === "custom" && customColor) applyThemeColor(customColor);
   else applyThemeColor(null);
 }

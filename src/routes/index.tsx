@@ -63,49 +63,40 @@ function Home() {
   const featuredEvents = events.filter((e) => new Date(e.starts_at).getTime() >= now).slice(0, 3);
   return (
     <SiteLayout>
-      {/* HERO */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-primary-dark via-primary to-primary-dark text-white">
-        <div className="absolute inset-0 opacity-30 [background:radial-gradient(circle_at_15%_20%,white,transparent_35%),radial-gradient(circle_at_85%_70%,var(--color-accent),transparent_40%)]" />
-        <div className="container-adey relative grid gap-10 py-20 md:grid-cols-2 md:items-center md:py-28">
-          <div>
-            <div className="mb-3 inline-flex items-center gap-2 text-accent">
-              <Sparkles className="h-5 w-5" />
-              <span className="font-heading text-2xl font-bold tracking-tight text-white md:text-3xl">{settings.org_name}</span>
-            </div>
-            <h1 className="text-4xl font-bold leading-tight text-white md:text-6xl">
-              {heroLead} <span className="text-accent">{heroLast}</span>
-            </h1>
-            <p className="mt-5 max-w-xl text-lg text-white/85">
-              {settings.hero_subtext}
-            </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Link to="/donate" className="btn-accent">
-                <HandHeart className="h-5 w-5" /> Support Our Mission
-              </Link>
-              <Link
-                to="/about"
-                className="inline-flex items-center gap-2 rounded-full border-2 border-white/40 px-7 py-3 font-heading font-bold text-white/95 transition-colors hover:bg-white/10"
-              >
-                Who We Are <ArrowRight className="h-4 w-4" />
-              </Link>
-            </div>
-          </div>
+      {/* HERO — full-bleed photo slideshow background */}
+      <section className="relative min-h-[640px] overflow-hidden text-white md:min-h-[720px]">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary-dark via-primary to-primary-dark" />
+        <div className="absolute inset-0">
+          <HeroSlideshow images={settings.hero_slideshow} altPrefix={settings.org_name} />
+        </div>
+        <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/60 to-ink/20" />
+        <div className="absolute inset-0 bg-gradient-to-r from-ink/70 via-ink/20 to-transparent" />
 
-          <div className="relative">
-            <div className="aspect-video w-full overflow-hidden rounded-3xl border border-white/15 bg-black/20 shadow-2xl backdrop-blur">
-              <HeroSlideshow images={settings.hero_slideshow} altPrefix={settings.org_name} />
-            </div>
-            {settings.stat_children_supported ? (
-              <div className="absolute -bottom-6 -left-6 rounded-2xl bg-white p-4 shadow-2xl md:-left-10">
-                <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Since {new Date().getFullYear() - (parseInt(settings.stat_years_of_impact ?? "") || 9)}</div>
-                <div className="font-heading text-2xl font-bold text-ink">{settings.stat_children_supported} lives</div>
-                <div className="text-sm text-body">walked alongside</div>
-              </div>
-            ) : null}
+        <div className="container-adey relative flex min-h-[640px] flex-col justify-end pb-20 pt-32 md:min-h-[720px] md:pb-24">
+          <div className="mb-4 inline-flex w-fit items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 backdrop-blur">
+            <Sparkles className="h-4 w-4 text-accent" />
+            <span className="font-heading text-sm font-bold uppercase tracking-widest text-white">{settings.org_name}</span>
+          </div>
+          <h1 className="max-w-3xl text-4xl font-bold leading-tight text-white drop-shadow-lg md:text-7xl">
+            {heroLead} <span className="text-accent">{heroLast}</span>
+          </h1>
+          <p className="mt-5 max-w-xl text-lg text-white/90 drop-shadow">
+            {settings.hero_subtext}
+          </p>
+          <div className="mt-8 flex flex-wrap gap-3">
+            <Link to="/donate" className="btn-accent">
+              <HandHeart className="h-5 w-5" /> Support Our Mission
+            </Link>
+            <Link
+              to="/about"
+              className="inline-flex items-center gap-2 rounded-full border-2 border-white/50 px-7 py-3 font-heading font-bold text-white transition-colors hover:bg-white/10"
+            >
+              Who We Are <ArrowRight className="h-4 w-4" />
+            </Link>
           </div>
         </div>
 
-        <div className="relative border-t border-white/10 bg-white/5 backdrop-blur-sm">
+        <div className="relative border-t border-white/15 bg-black/30 backdrop-blur-md">
           <div className="container-adey grid grid-cols-2 gap-6 py-6 md:grid-cols-4">
             {STATS.map((s) => (
               <div key={s.label} className="text-center md:text-left">
@@ -116,6 +107,7 @@ function Home() {
           </div>
         </div>
       </section>
+
 
       {/* ABOUT */}
       <section id="about" className="section-pad">
