@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
-import { Heart, Users, Sparkles, Target, ShieldCheck, HandHeart } from "lucide-react";
+import { Heart, Users, Sparkles, Target, ShieldCheck, HandHeart, Handshake, Megaphone, Quote } from "lucide-react";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { PageHero } from "@/components/site/PageHero";
 import { listPublicStaff } from "@/lib/cms-public";
@@ -30,18 +30,19 @@ export const Route = createFileRoute("/about")({
 });
 
 const values = [
-  { icon: Heart, t: "Dignity", b: "Every child is treated with the respect they deserve — no exceptions." },
-  { icon: Users, t: "Family-first", b: "We support caregivers as the lifelong therapists they already are." },
-  { icon: ShieldCheck, t: "Evidence-based", b: "Our programs follow WHO and international CP standards of care." },
-  { icon: Sparkles, t: "Radical hope", b: "We believe in what's possible — and we build it, one child at a time." },
+  { icon: Users, t: "Inclusivity", b: "We promote equal participation and dignity for all, regardless of ability or background." },
+  { icon: Sparkles, t: "Empowerment", b: "We equip families and caregivers with training, resources, and economic opportunities." },
+  { icon: Megaphone, t: "Advocacy", b: "We work for policies and public awareness that secure equal rights for people with CP." },
+  { icon: ShieldCheck, t: "Sustainability", b: "We build long-term, lasting solutions rather than one-time interventions." },
+  { icon: Handshake, t: "Collaboration", b: "We partner with government, NGOs, and communities to multiply our impact." },
 ];
 
 const milestones = [
-  { y: "2016", t: "Founded in Addis Ababa", b: "A small group of families and clinicians began weekend therapy in a borrowed room." },
-  { y: "2018", t: "First community center", b: "Opened a permanent space with physio, speech and occupational therapy." },
-  { y: "2021", t: "Rural outreach", b: "Mobile clinics reached families in Oromia, Amhara and SNNPR regions." },
-  { y: "2024", t: "Inclusive schools", b: "Launched teacher-training partnerships with public schools across Addis." },
-  { y: "2026", t: "1,000+ children served", b: "Serving over a thousand children and their families every year." },
+  { y: "2024", t: "Founded in Addis Ababa", b: "Established by five dedicated individuals, with 16 General Assembly Members and a 5-member Board of Directors." },
+  { y: "2024", t: "Officially licensed", b: "Licensed by the Authority for Civil Society Organizations (ACSO), Ethiopia." },
+  { y: "Ongoing", t: "Therapy & rehabilitation", b: "Physiotherapy, occupational therapy, speech therapy, and assistive device support for children with CP." },
+  { y: "Ongoing", t: "Caregiver empowerment", b: "Training, resources, and economic opportunities for mothers and caregivers." },
+  { y: "Growing", t: "Community & advocacy", b: "Awareness campaigns, inclusive-education partnerships, and policy advocacy across Ethiopia." },
 ];
 
 function About() {
@@ -72,6 +73,26 @@ function About() {
           ))}
         </div>
       </section>
+
+      {/* Goals */}
+      {settings.goals ? (
+        <section className="section-pad">
+          <div className="container-adey">
+            <div className="mx-auto max-w-2xl text-center">
+              <div className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Our Goals</div>
+              <h2 className="mt-3 text-3xl md:text-4xl">What we're working toward.</h2>
+            </div>
+            <div className="mx-auto mt-10 grid max-w-4xl gap-4 sm:grid-cols-2">
+              {settings.goals.split(/\.\s+/).map((g) => g.trim()).filter(Boolean).map((g) => (
+                <div key={g} className="flex items-start gap-3 rounded-xl border border-border bg-card p-4">
+                  <Target className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+                  <p className="text-sm text-body">{g.replace(/\.$/, "")}.</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      ) : null}
 
       {/* Story */}
       <section className="bg-muted/40 section-pad">
@@ -119,7 +140,7 @@ function About() {
             <div className="text-xs font-bold uppercase tracking-[0.2em] text-primary">What we stand for</div>
             <h2 className="mt-3 text-3xl md:text-4xl">Our values.</h2>
           </div>
-          <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-5">
             {values.map((v) => (
               <div key={v.t} className="rounded-2xl border border-border bg-card p-6 shadow-[var(--shadow-soft)]">
                 <div className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-primary-soft text-primary">
@@ -152,6 +173,40 @@ function About() {
           </ol>
         </div>
       </section>
+
+      {/* Founder spotlight */}
+      {settings.founder_name ? (
+        <section className="bg-muted/40 section-pad">
+          <div className="container-adey">
+            <div className="grid gap-10 overflow-hidden rounded-3xl border border-border bg-card shadow-[var(--shadow-lifted)] md:grid-cols-[0.8fr_1.2fr]">
+              <div className="relative min-h-[280px] bg-primary-soft">
+                {settings.founder_photo_url ? (
+                  <img src={settings.founder_photo_url} alt={settings.founder_name} className="absolute inset-0 h-full w-full object-cover" />
+                ) : (
+                  <div className="flex h-full min-h-[280px] w-full items-center justify-center">
+                    <span className="font-heading text-6xl font-bold text-primary/40">
+                      {settings.founder_name.split(" ").map((n) => n[0]).slice(0, 2).join("")}
+                    </span>
+                  </div>
+                )}
+              </div>
+              <div className="flex flex-col justify-center p-8 md:p-12">
+                <Quote className="h-8 w-8 text-accent" />
+                {settings.founder_quote ? (
+                  <blockquote className="mt-3 font-heading text-2xl leading-snug text-ink md:text-3xl">
+                    "{settings.founder_quote}"
+                  </blockquote>
+                ) : null}
+                <div className="mt-6">
+                  <div className="text-lg font-bold text-ink">{settings.founder_name}</div>
+                  {settings.founder_title ? <div className="text-sm font-semibold text-primary">{settings.founder_title}</div> : null}
+                </div>
+                {settings.founder_bio ? <p className="mt-4 text-sm leading-relaxed text-body">{settings.founder_bio}</p> : null}
+              </div>
+            </div>
+          </div>
+        </section>
+      ) : null}
 
       {/* Team */}
       <section className="section-pad">

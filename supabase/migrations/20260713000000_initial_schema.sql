@@ -656,3 +656,57 @@ insert into public.site_settings (
   'cerebral palsy, Ethiopia, disability, children, therapy, humanitarian, NGO'
 )
 on conflict (id) do nothing;
+
+-- =========================================================
+-- Homepage slideshow, switchable theme, founder, testimony, membership
+-- =========================================================
+alter table public.site_settings
+  add column if not exists hero_slideshow jsonb not null default '[]'::jsonb,
+  add column if not exists theme_mode text not null default 'brand' check (theme_mode in ('brand','custom')),
+  add column if not exists goals text,
+  add column if not exists founder_name text,
+  add column if not exists founder_title text,
+  add column if not exists founder_bio text,
+  add column if not exists founder_quote text,
+  add column if not exists founder_photo_url text,
+  add column if not exists testimony_mother_name text,
+  add column if not exists testimony_photo_url text,
+  add column if not exists testimony_quote text,
+  add column if not exists testimony_points jsonb not null default '[]'::jsonb,
+  add column if not exists membership_form_url text;
+
+create table public.membership_registrations (
+  id uuid primary key default gen_random_uuid(),
+  full_name text,
+  email text,
+  created_at timestamptz not null default now()
+);
+
+grant insert on public.membership_registrations to anon;
+grant select, insert, delete on public.membership_registrations to authenticated;
+grant all on public.membership_registrations to service_role;
+
+alter table public.membership_registrations enable row level security;
+
+create policy "membership_public_insert" on public.membership_registrations
+  for insert to anon with check (true);
+
+create policy "membership_editor_read" on public.membership_registrations
+  for select to authenticated
+  using (public.has_role(auth.uid(), 'admin') or public.has_role(auth.uid(), 'editor'));
+
+create policy "membership_admin_delete" on public.membership_registrations
+  for delete to authenticated
+  using (public.has_role(auth.uid(), 'admin'));
+
+create or replace function public.membership_count()
+returns bigint
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select count(*) from public.membership_registrations;
+$$;
+revoke execute on function public.membership_count() from public;
+grant execute on function public.membership_count() to anon, authenticated;

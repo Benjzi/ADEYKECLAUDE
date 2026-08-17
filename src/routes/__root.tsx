@@ -1,15 +1,15 @@
 import { Outlet, createRootRouteWithContext, useMatches, useRouter, Link } from "@tanstack/react-router";
 import { QueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
-import { useSiteSettings, applyThemeColor } from "@/lib/site-settings";
+import { useSiteSettings, applyThemeMode } from "@/lib/site-settings";
 
-/** Applies the admin-selected brand color globally, site-wide. */
+/** Applies the admin-selected theme (brand navy/gold, or a custom color) globally. */
 function ThemeSync() {
   const settings = useSiteSettings();
   useEffect(() => {
-    applyThemeColor(settings.theme_color);
-    return () => applyThemeColor(null);
-  }, [settings.theme_color]);
+    applyThemeMode(settings.theme_mode, settings.theme_color);
+    return () => applyThemeMode("brand", null);
+  }, [settings.theme_mode, settings.theme_color]);
   return null;
 }
 

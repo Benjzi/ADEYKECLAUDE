@@ -48,6 +48,23 @@ export type SiteSettings = {
   theme_color: string | null;
   impact_stats: { n: string; l: string }[];
   by_numbers_stats: { n: string; l: string }[];
+
+  hero_slideshow: string[];
+  theme_mode: "brand" | "custom";
+  goals: string | null;
+
+  founder_name: string | null;
+  founder_title: string | null;
+  founder_bio: string | null;
+  founder_quote: string | null;
+  founder_photo_url: string | null;
+
+  testimony_mother_name: string | null;
+  testimony_photo_url: string | null;
+  testimony_quote: string | null;
+  testimony_points: string[];
+
+  membership_form_url: string | null;
 };
 
 /**
@@ -106,6 +123,23 @@ export const DEFAULT_SETTINGS: SiteSettings = {
     { n: "12", l: "Regions reached" },
     { n: "40+", l: "Trained caregivers & therapists" },
   ],
+
+  hero_slideshow: [],
+  theme_mode: "brand",
+  goals: null,
+
+  founder_name: null,
+  founder_title: "Founder & Executive Director",
+  founder_bio: null,
+  founder_quote: null,
+  founder_photo_url: null,
+
+  testimony_mother_name: null,
+  testimony_photo_url: null,
+  testimony_quote: null,
+  testimony_points: [],
+
+  membership_form_url: null,
 };
 
 export async function getSiteSettings(): Promise<SiteSettings> {
@@ -200,6 +234,13 @@ export function applyThemeColor(hex: string | null | undefined) {
   root.style.setProperty("--ring", `hsl(${h} ${s}% 48%)`);
   root.style.setProperty("--sidebar-primary", `hsl(${h} ${s}% 48%)`);
   root.style.setProperty("--sidebar-ring", `hsl(${h} ${s}% 48%)`);
+}
+
+/** Applies the full theme decision: 'brand' resets to the stylesheet's navy
+ * + gold defaults; 'custom' applies the admin's chosen color. */
+export function applyThemeMode(mode: "brand" | "custom", customColor: string | null | undefined) {
+  if (mode === "custom" && customColor) applyThemeColor(customColor);
+  else applyThemeColor(null);
 }
 
 /** 15 curated preset swatches for the admin color picker. */

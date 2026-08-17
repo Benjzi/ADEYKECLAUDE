@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { HandHeart, HeartHandshake, GraduationCap, Users, Stethoscope, Sparkles, ArrowRight, MapPin, PlayCircle } from "lucide-react";
 import { SiteLayout } from "@/components/site/SiteLayout";
+import { HeroSlideshow } from "@/components/site/HeroSlideshow";
 import { listPublicPartners, listPublishedNews, listPublishedEvents } from "@/lib/cms-public";
 import { useSiteSettings, siteSettingsQuery } from "@/lib/site-settings";
 
@@ -67,8 +68,9 @@ function Home() {
         <div className="absolute inset-0 opacity-30 [background:radial-gradient(circle_at_15%_20%,white,transparent_35%),radial-gradient(circle_at_85%_70%,var(--color-accent),transparent_40%)]" />
         <div className="container-adey relative grid gap-10 py-20 md:grid-cols-2 md:items-center md:py-28">
           <div>
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-accent">
-              <Sparkles className="h-3.5 w-3.5" /> {settings.org_name}
+            <div className="mb-3 inline-flex items-center gap-2 text-accent">
+              <Sparkles className="h-5 w-5" />
+              <span className="font-heading text-2xl font-bold tracking-tight text-white md:text-3xl">{settings.org_name}</span>
             </div>
             <h1 className="text-4xl font-bold leading-tight text-white md:text-6xl">
               {heroLead} <span className="text-accent">{heroLast}</span>
@@ -91,14 +93,7 @@ function Home() {
 
           <div className="relative">
             <div className="aspect-video w-full overflow-hidden rounded-3xl border border-white/15 bg-black/20 shadow-2xl backdrop-blur">
-              <iframe
-                className="h-full w-full"
-                src="https://www.youtube.com/embed/J4Hrt4U-_iA?rel=0&modestbranding=1"
-                title={`${settings.org_name} — Our Story`}
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowFullScreen
-                loading="lazy"
-              />
+              <HeroSlideshow images={settings.hero_slideshow} altPrefix={settings.org_name} />
             </div>
             {settings.stat_children_supported ? (
               <div className="absolute -bottom-6 -left-6 rounded-2xl bg-white p-4 shadow-2xl md:-left-10">
@@ -172,6 +167,41 @@ function Home() {
         </div>
       </section>
 
+      {/* MOTHER TESTIMONY */}
+      {settings.testimony_photo_url || settings.testimony_quote ? (
+        <section className="section-pad">
+          <div className="container-adey">
+            <div className="grid gap-10 overflow-hidden rounded-3xl border border-border bg-card shadow-[var(--shadow-lifted)] md:grid-cols-[0.9fr_1.1fr]">
+              {settings.testimony_photo_url ? (
+                <div className="relative min-h-[280px]">
+                  <img src={settings.testimony_photo_url} alt={settings.testimony_mother_name ?? "A mother from our community"} className="absolute inset-0 h-full w-full object-cover" />
+                </div>
+              ) : null}
+              <div className="flex flex-col justify-center p-8 md:p-12">
+                <div className="text-xs font-bold uppercase tracking-[0.2em] text-primary">A Family's Story</div>
+                {settings.testimony_quote ? (
+                  <blockquote className="mt-4 font-heading text-2xl leading-snug text-ink md:text-3xl">
+                    "{settings.testimony_quote}"
+                  </blockquote>
+                ) : null}
+                {settings.testimony_mother_name ? (
+                  <div className="mt-4 text-sm font-semibold text-primary">— {settings.testimony_mother_name}</div>
+                ) : null}
+                {settings.testimony_points.length > 0 ? (
+                  <ul className="mt-6 space-y-2">
+                    {settings.testimony_points.map((pt) => (
+                      <li key={pt} className="flex items-start gap-2 text-sm text-body">
+                        <HeartHandshake className="mt-0.5 h-4 w-4 shrink-0 text-accent-dark" /> {pt}
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+              </div>
+            </div>
+          </div>
+        </section>
+      ) : null}
+
       {/* VIDEO SECTION (dedicated wide) */}
       <section className="section-pad">
         <div className="container-adey">
@@ -206,7 +236,7 @@ function Home() {
                 <div className="text-xs font-bold uppercase tracking-[0.2em] text-accent-dark">Upcoming Events</div>
                 <h2 className="mt-2 text-3xl md:text-4xl">Come be with us.</h2>
               </div>
-              <Link to="/events" className="text-sm font-bold text-primary hover:underline">
+              <Link to="/news-events" className="text-sm font-bold text-primary hover:underline">
                 See all events <ArrowRight className="ml-1 inline h-4 w-4" />
               </Link>
             </div>
@@ -257,7 +287,7 @@ function Home() {
                 <div className="text-xs font-bold uppercase tracking-[0.2em] text-accent-dark">Latest News</div>
                 <h2 className="mt-2 text-3xl md:text-4xl">Stories from the field.</h2>
               </div>
-              <Link to="/news" className="text-sm font-bold text-primary hover:underline">
+              <Link to="/news-events" className="text-sm font-bold text-primary hover:underline">
                 Read all stories <ArrowRight className="ml-1 inline h-4 w-4" />
               </Link>
             </div>

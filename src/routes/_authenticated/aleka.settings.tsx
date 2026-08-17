@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Save } from "lucide-react";
-import { siteSettingsQuery, useUpdateSiteSettings, applyThemeColor, THEME_PRESETS, type SiteSettings } from "@/lib/site-settings";
+import { siteSettingsQuery, useUpdateSiteSettings, applyThemeColor, applyThemeMode, THEME_PRESETS, type SiteSettings } from "@/lib/site-settings";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -44,6 +44,59 @@ function StatList({
           <Textarea className="mt-1" rows={2} value={it.l} onChange={(e) => update(i, { l: e.target.value })} />
         </div>
       ))}
+    </div>
+  );
+}
+
+function StringListEditor({
+  items, onChange, placeholder = "Add an item…",
+}: {
+  items: string[];
+  onChange: (items: string[]) => void;
+  placeholder?: string;
+}) {
+  const [draft, setDraft] = useState("");
+  return (
+    <div className="space-y-2">
+      {items.map((it, i) => (
+        <div key={i} className="flex items-center gap-2">
+          <Input value={it} onChange={(e) => onChange(items.map((x, idx) => (idx === i ? e.target.value : x)))} />
+          <Button type="button" variant="ghost" size="sm" onClick={() => onChange(items.filter((_, idx) => idx !== i))}>Remove</Button>
+        </div>
+      ))}
+      <div className="flex items-center gap-2">
+        <Input
+          value={draft}
+          placeholder={placeholder}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); if (draft.trim()) { onChange([...items, draft.trim()]); setDraft(""); } } }}
+        />
+        <Button type="button" variant="outline" size="sm" onClick={() => { if (draft.trim()) { onChange([...items, draft.trim()]); setDraft(""); } }}>Add</Button>
+      </div>
+    </div>
+  );
+}
+
+function ImageListEditor({ images, onChange }: { images: string[]; onChange: (imgs: string[]) => void }) {
+  return (
+    <div className="space-y-3">
+      <div className="grid gap-3 sm:grid-cols-3">
+        {images.map((url, i) => (
+          <div key={i} className="relative overflow-hidden rounded-xl border border-border">
+            <img src={url} alt="" className="aspect-video w-full object-cover" />
+            <Button
+              type="button" size="sm" variant="destructive"
+              className="absolute right-2 top-2 h-7 px-2 text-xs"
+              onClick={() => onChange(images.filter((_, idx) => idx !== i))}
+            >Remove</Button>
+          </div>
+        ))}
+      </div>
+      {images.length < 5 ? (
+        <MediaUpload folder="settings" value={null} onChange={(url) => url && onChange([...images, url])} />
+      ) : (
+        <p className="text-xs text-muted-foreground">Maximum 5 slideshow photos — remove one to add another.</p>
+      )}
     </div>
   );
 }
@@ -90,6 +143,8 @@ function SettingsAdmin() {
           <TabsTrigger value="theme">Theme Color</TabsTrigger>
           <TabsTrigger value="seo">SEO</TabsTrigger>
           <TabsTrigger value="homepage">Homepage</TabsTrigger>
+          <TabsTrigger value="story">Founder &amp; Story</TabsTrigger>
+          <TabsTrigger value="membership">Membership</TabsTrigger>
         </TabsList>
 
         <TabsContent value="org" className="mt-6 space-y-4 rounded-2xl border border-border bg-card p-6">
@@ -164,9 +219,46 @@ function SettingsAdmin() {
               <MediaUpload folder="settings" value={form.hero_image_url} onChange={(url) => set("hero_image_url", url)} />
             </Field>
           </div>
+          <div className="border-t border-border pt-6">
+            <Label>Homepage photo slideshow (up to 5 photos)</Label>
+            <p className="mt-1 text-xs text-muted-foreground">Shown as the sliding hero image on the homepage. Replace the temporary photos with your own anytime.</p>
+            <div className="mt-3">
+              <ImageListEditor images={form.hero_slideshow} onChange={(imgs) => set("hero_slideshow", imgs)} />
+            </div>
+          </div>
         </TabsContent>
 
         <TabsContent value="theme" className="mt-6 space-y-6 rounded-2xl border border-border bg-card p-6">
+          <div>
+            <h3 className="font-heading text-sm font-bold uppercase tracking-wider text-primary">Theme</h3>
+            <p className="mt-1 text-sm text-muted-foreground">Switch between the brand theme and a custom color anytime.</p>
+            <div className="mt-3 flex gap-3">
+              <button
+                type="button"
+                onClick={() => { set("theme_mode", "brand"); applyThemeMode("brand", null); }}
+                className={`flex-1 rounded-xl border-2 p-4 text-left transition ${form.theme_mode === "brand" ? "border-primary bg-primary-soft/50" : "border-border hover:bg-muted"}`}
+              >
+                <div className="flex gap-1.5">
+                  <span className="h-6 w-6 rounded-full" style={{ background: "#0b3d68" }} />
+                  <span className="h-6 w-6 rounded-full" style={{ background: "#f5c518" }} />
+                  <span className="h-6 w-6 rounded-full border border-black/10 bg-white" />
+                </div>
+                <div className="mt-2 text-sm font-bold">Brand (default)</div>
+                <div className="text-xs text-muted-foreground">Navy, gold & white — matches the logo</div>
+              </button>
+              <button
+                type="button"
+                onClick={() => { set("theme_mode", "custom"); applyThemeMode("custom", form.theme_color || THEME_PRESETS[0].hex); if (!form.theme_color) set("theme_color", THEME_PRESETS[0].hex); }}
+                className={`flex-1 rounded-xl border-2 p-4 text-left transition ${form.theme_mode === "custom" ? "border-primary bg-primary-soft/50" : "border-border hover:bg-muted"}`}
+              >
+                <span className="inline-block h-6 w-6 rounded-full" style={{ background: form.theme_color ?? THEME_PRESETS[0].hex }} />
+                <div className="mt-2 text-sm font-bold">Custom</div>
+                <div className="text-xs text-muted-foreground">Pick any color below</div>
+              </button>
+            </div>
+          </div>
+
+          <div className={form.theme_mode === "brand" ? "pointer-events-none opacity-40" : ""}>
           <div>
             <h3 className="font-heading text-sm font-bold uppercase tracking-wider text-primary">Brand color</h3>
             <p className="mt-1 text-sm text-muted-foreground">
@@ -213,10 +305,11 @@ function SettingsAdmin() {
             <Button
               type="button"
               variant="outline"
-              onClick={() => { set("theme_color", null); applyThemeColor(null); }}
+              onClick={() => { set("theme_color", null); set("theme_mode", "brand"); applyThemeMode("brand", null); }}
             >
-              Reset to default blue
+              Reset to brand theme
             </Button>
+          </div>
           </div>
         </TabsContent>
 
@@ -292,6 +385,76 @@ function SettingsAdmin() {
               </Field>
             </div>
           </div>
+        </TabsContent>
+
+        <TabsContent value="story" className="mt-6 space-y-8 rounded-2xl border border-border bg-card p-6">
+          <div>
+            <h3 className="font-heading text-sm font-bold uppercase tracking-wider text-primary">Founder / Executive Director</h3>
+            <div className="mt-3 grid gap-4 sm:grid-cols-2">
+              <Field label="Name">
+                <Input value={form.founder_name ?? ""} onChange={(e) => set("founder_name", e.target.value)} />
+              </Field>
+              <Field label="Title">
+                <Input value={form.founder_title ?? ""} onChange={(e) => set("founder_title", e.target.value)} />
+              </Field>
+            </div>
+            <div className="mt-4">
+              <Field label="Photo">
+                <MediaUpload folder="staff" value={form.founder_photo_url} onChange={(url) => set("founder_photo_url", url)} />
+              </Field>
+            </div>
+            <div className="mt-4">
+              <Field label="Quote / keynote line">
+                <Textarea rows={2} value={form.founder_quote ?? ""} onChange={(e) => set("founder_quote", e.target.value)} />
+              </Field>
+            </div>
+            <div className="mt-4">
+              <Field label="Bio">
+                <Textarea rows={4} value={form.founder_bio ?? ""} onChange={(e) => set("founder_bio", e.target.value)} />
+              </Field>
+            </div>
+          </div>
+
+          <div className="border-t border-border pt-6">
+            <h3 className="font-heading text-sm font-bold uppercase tracking-wider text-primary">Mother / Family Testimony (homepage)</h3>
+            <div className="mt-3">
+              <Field label="Photo">
+                <MediaUpload folder="staff" value={form.testimony_photo_url} onChange={(url) => set("testimony_photo_url", url)} />
+              </Field>
+            </div>
+            <div className="mt-4">
+              <Field label="Name (optional — can stay anonymous, e.g. 'A mother from our community')">
+                <Input value={form.testimony_mother_name ?? ""} onChange={(e) => set("testimony_mother_name", e.target.value)} />
+              </Field>
+            </div>
+            <div className="mt-4">
+              <Field label="Quote">
+                <Textarea rows={3} value={form.testimony_quote ?? ""} onChange={(e) => set("testimony_quote", e.target.value)} />
+              </Field>
+            </div>
+            <div className="mt-4">
+              <Label>Progress points</Label>
+              <p className="mt-1 text-xs text-muted-foreground">Short bullet points about the child's change/progress.</p>
+              <div className="mt-2">
+                <StringListEditor items={form.testimony_points} onChange={(items) => set("testimony_points", items)} placeholder="e.g. Improved sitting balance" />
+              </div>
+            </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="membership" className="mt-6 space-y-4 rounded-2xl border border-border bg-card p-6">
+          <h3 className="font-heading text-sm font-bold uppercase tracking-wider text-primary">Membership</h3>
+          <Field label="Google Form embed URL">
+            <Input
+              value={form.membership_form_url ?? ""}
+              onChange={(e) => set("membership_form_url", e.target.value)}
+              placeholder="https://docs.google.com/forms/d/e/.../viewform?embedded=true"
+            />
+          </Field>
+          <p className="text-xs text-muted-foreground">
+            In Google Forms: Send → the <strong>&lt;&gt;</strong> embed icon → copy the URL from the iframe's <code>src</code> (or paste the plain form link — the site will add <code>?embedded=true</code> automatically).
+            The Membership page shows this form and a "Mark as submitted" button people click after filling it out — that's what's counted, since we can't detect real Google Form submissions from an embedded iframe without a Google API integration.
+          </p>
         </TabsContent>
       </Tabs>
 

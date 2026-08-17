@@ -16,6 +16,8 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as DonateRouteImport } from './routes/donate'
 import { Route as GalleryRouteImport } from './routes/gallery'
+import { Route as MembershipRouteImport } from './routes/membership'
+import { Route as NewsEventsRouteImport } from './routes/news-events'
 import { Route as SocialsRouteImport } from './routes/socials'
 import { Route as AuthenticatedAlekaRouteImport } from './routes/_authenticated/aleka'
 import { Route as DonateSuccessRouteImport } from './routes/donate.success'
@@ -66,6 +68,16 @@ const DonateRoute = DonateRouteImport.update({
 const GalleryRoute = GalleryRouteImport.update({
   id: '/gallery',
   path: '/gallery',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MembershipRoute = MembershipRouteImport.update({
+  id: '/membership',
+  path: '/membership',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NewsEventsRoute = NewsEventsRouteImport.update({
+  id: '/news-events',
+  path: '/news-events',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SocialsRoute = SocialsRouteImport.update({
@@ -166,6 +178,8 @@ export interface FileRoutesByFullPath {
   '/contact': typeof ContactRoute
   '/donate': typeof DonateRouteWithChildren
   '/gallery': typeof GalleryRoute
+  '/membership': typeof MembershipRoute
+  '/news-events': typeof NewsEventsRoute
   '/socials': typeof SocialsRoute
   '/aleka': typeof AuthenticatedAlekaRouteWithChildren
   '/donate/success': typeof DonateSuccessRoute
@@ -191,6 +205,8 @@ export interface FileRoutesByTo {
   '/contact': typeof ContactRoute
   '/donate': typeof DonateRouteWithChildren
   '/gallery': typeof GalleryRoute
+  '/membership': typeof MembershipRoute
+  '/news-events': typeof NewsEventsRoute
   '/socials': typeof SocialsRoute
   '/donate/success': typeof DonateSuccessRoute
   '/events/$slug': typeof EventsSlugRoute
@@ -217,6 +233,8 @@ export interface FileRoutesById {
   '/contact': typeof ContactRoute
   '/donate': typeof DonateRouteWithChildren
   '/gallery': typeof GalleryRoute
+  '/membership': typeof MembershipRoute
+  '/news-events': typeof NewsEventsRoute
   '/socials': typeof SocialsRoute
   '/_authenticated/aleka': typeof AuthenticatedAlekaRouteWithChildren
   '/donate/success': typeof DonateSuccessRoute
@@ -244,6 +262,8 @@ export interface FileRouteTypes {
     | '/contact'
     | '/donate'
     | '/gallery'
+    | '/membership'
+    | '/news-events'
     | '/socials'
     | '/aleka'
     | '/donate/success'
@@ -269,6 +289,8 @@ export interface FileRouteTypes {
     | '/contact'
     | '/donate'
     | '/gallery'
+    | '/membership'
+    | '/news-events'
     | '/socials'
     | '/donate/success'
     | '/events/$slug'
@@ -294,6 +316,8 @@ export interface FileRouteTypes {
     | '/contact'
     | '/donate'
     | '/gallery'
+    | '/membership'
+    | '/news-events'
     | '/socials'
     | '/_authenticated/aleka'
     | '/donate/success'
@@ -321,6 +345,8 @@ export interface RootRouteChildren {
   ContactRoute: typeof ContactRoute
   DonateRoute: typeof DonateRouteWithChildren
   GalleryRoute: typeof GalleryRoute
+  MembershipRoute: typeof MembershipRoute
+  NewsEventsRoute: typeof NewsEventsRoute
   SocialsRoute: typeof SocialsRoute
   EventsSlugRoute: typeof EventsSlugRoute
   NewsSlugRoute: typeof NewsSlugRoute
@@ -377,6 +403,20 @@ declare module '@tanstack/react-router' {
       path: '/gallery'
       fullPath: '/gallery'
       preLoaderRoute: typeof GalleryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/membership': {
+      id: '/membership'
+      path: '/membership'
+      fullPath: '/membership'
+      preLoaderRoute: typeof MembershipRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/news-events': {
+      id: '/news-events'
+      path: '/news-events'
+      fullPath: '/news-events'
+      preLoaderRoute: typeof NewsEventsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/socials': {
@@ -560,6 +600,8 @@ const rootRouteChildren: RootRouteChildren = {
   ContactRoute: ContactRoute,
   DonateRoute: DonateRouteWithChildren,
   GalleryRoute: GalleryRoute,
+  MembershipRoute: MembershipRoute,
+  NewsEventsRoute: NewsEventsRoute,
   SocialsRoute: SocialsRoute,
   EventsSlugRoute: EventsSlugRoute,
   NewsSlugRoute: NewsSlugRoute,
