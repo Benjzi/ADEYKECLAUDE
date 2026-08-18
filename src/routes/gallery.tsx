@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { Image as ImageIcon } from "lucide-react";
+import { Image as ImageIcon, Images } from "lucide-react";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { PageHero, EmptyState } from "@/components/site/PageHero";
 import { listPublicGallery } from "@/lib/cms-public";
@@ -63,10 +63,15 @@ function Gallery() {
               description="Once photos are uploaded from the admin panel, they'll appear here."
             />
           ) : (
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
-              {albums.map((album) => (
-                <AlbumCard key={album.id} album={album} onOpen={() => setOpenId(album.id)} />
-              ))}
+            <div className="grid grid-cols-2 gap-4 auto-rows-[160px] sm:grid-cols-3 md:grid-cols-4 md:auto-rows-[220px]">
+              {albums.map((album, i) => {
+                const featured = i === 0;
+                return (
+                  <div key={album.id} className={featured ? "col-span-2 row-span-2" : ""}>
+                    <AlbumCard album={album} onOpen={() => setOpenId(album.id)} large={featured} />
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>

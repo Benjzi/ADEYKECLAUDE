@@ -12,7 +12,7 @@ export type Album = {
 
 /** A single album card: one thumbnail + a photo-count badge, like a stacked
  * photo pile. Click opens the full AlbumViewer with every photo. */
-export function AlbumCard({ album, onOpen }: { album: Album; onOpen: () => void }) {
+export function AlbumCard({ album, onOpen, large }: { album: Album; onOpen: () => void; large?: boolean }) {
   const cover = album.cover_image_url || album.items[0]?.image_url;
   const total = album.items.length;
   if (!cover) return null;
@@ -20,10 +20,10 @@ export function AlbumCard({ album, onOpen }: { album: Album; onOpen: () => void 
   return (
     <button
       onClick={onOpen}
-      className="group text-left"
+      className="group h-full w-full text-left"
       aria-label={`Open album ${album.name} (${total} photo${total === 1 ? "" : "s"})`}
     >
-      <div className="relative aspect-square overflow-hidden rounded-2xl bg-muted shadow-[var(--shadow-card)]">
+      <div className={`relative h-full w-full overflow-hidden rounded-2xl bg-muted shadow-[var(--shadow-card)] ${large ? "" : "aspect-square"}`}>
         {/* stacked-photo effect when there's more than one image */}
         {total > 1 ? (
           <>
@@ -38,13 +38,19 @@ export function AlbumCard({ album, onOpen }: { album: Album; onOpen: () => void 
           className="relative h-full w-full rounded-xl object-cover transition-transform duration-500 group-hover:scale-[1.04]"
         />
         <div className="pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-t from-black/65 via-black/0 to-transparent" />
+        {large ? (
+          <span className="absolute left-3 top-3 inline-flex items-center rounded-full bg-accent px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-accent-foreground">
+            Featured Album
+          </span>
+        ) : null}
         {total > 0 ? (
           <div className="absolute right-2.5 top-2.5 inline-flex items-center gap-1 rounded-full bg-black/60 px-2.5 py-1 text-xs font-bold text-white backdrop-blur">
             <Images className="h-3.5 w-3.5" /> {total > 99 ? "99+" : total}
           </div>
         ) : null}
         <div className="absolute inset-x-0 bottom-0 p-3">
-          <div className="font-heading text-sm font-bold text-white drop-shadow sm:text-base">{album.name}</div>
+          <div className={`font-heading font-bold text-white drop-shadow ${large ? "text-xl md:text-2xl" : "text-sm sm:text-base"}`}>{album.name}</div>
+          {large && album.description ? <div className="mt-1 line-clamp-1 text-sm text-white/80">{album.description}</div> : null}
         </div>
       </div>
     </button>
