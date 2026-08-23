@@ -72,7 +72,7 @@ function Home() {
         <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/60 to-ink/20" />
         <div className="absolute inset-0 bg-gradient-to-r from-ink/70 via-ink/20 to-transparent" />
 
-        <div className="container-adey relative flex min-h-[640px] flex-col justify-end pb-20 pt-32 md:min-h-[720px] md:pb-24">
+        <div className="container-adey relative flex min-h-[640px] flex-col justify-end pb-28 pt-32 md:min-h-[720px] md:pb-32">
           <div className="mb-4 inline-flex w-fit items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 backdrop-blur">
             <Sparkles className="h-4 w-4 text-accent" />
             <span className="font-heading text-sm font-bold uppercase tracking-widest text-white">{settings.org_name}</span>

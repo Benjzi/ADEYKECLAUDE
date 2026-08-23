@@ -38,7 +38,7 @@ export function HeroSlideshow({ images, altPrefix }: { images: string[]; altPref
             aria-label="Next photo"
             className="absolute right-4 top-1/2 z-10 hidden -translate-y-1/2 items-center justify-center rounded-full border border-white/30 bg-black/20 p-2 text-white backdrop-blur transition hover:bg-black/40 md:flex"
           ><ChevronRight className="h-5 w-5" /></button>
-          <div className="absolute bottom-5 left-1/2 z-10 flex -translate-x-1/2 gap-1.5">
+          <div className="absolute bottom-3 left-1/2 z-10 flex -translate-x-1/2 gap-1.5">
             {slides.map((_, i) => (
               <button
                 key={i}

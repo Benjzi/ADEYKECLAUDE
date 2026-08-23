@@ -61,6 +61,47 @@ function Contact() {
         Whether you want to partner, volunteer, or learn more — reach out.
       </PageHero>
 
+      {settings.address ? (
+        <section className="bg-ink py-16 text-white">
+          <div className="container-adey grid gap-0 overflow-hidden rounded-3xl border border-white/10 md:grid-cols-2">
+            <div className="bg-black/30 p-8 md:p-10">
+              <div className="text-xs font-bold uppercase tracking-[0.2em] text-accent">Find Us</div>
+              <h2 className="mt-2 text-2xl font-bold text-white md:text-3xl">Our Location</h2>
+              <p className="mt-4 text-white/70">Come visit us — we'd love to welcome you in person.</p>
+
+              <div className="mt-6 space-y-3">
+                <div className="text-sm font-semibold text-white/60">Address</div>
+                <div className="text-lg text-white">{settings.address}</div>
+              </div>
+
+              {settings.office_hours ? (
+                <div className="mt-6 space-y-1">
+                  <div className="text-sm font-semibold text-white/60">Office Hours</div>
+                  <div className="text-white/90">{settings.office_hours}</div>
+                </div>
+              ) : null}
+
+              <a
+                href={settings.maps_url || `https://www.google.com/maps?q=${encodeURIComponent(settings.address)}`}
+                target="_blank" rel="noreferrer"
+                className="mt-8 inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3 font-heading font-bold text-accent-foreground transition hover:brightness-95"
+              >
+                <MapPin className="h-4 w-4" /> Get Directions
+              </a>
+            </div>
+            <div className="min-h-[320px] bg-muted">
+              <iframe
+                title="Map to our location"
+                src={`https://www.google.com/maps?q=${encodeURIComponent(settings.address)}&output=embed`}
+                className="h-full min-h-[320px] w-full border-0"
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              />
+            </div>
+          </div>
+        </section>
+      ) : null}
+
       <section className="section-pad">
         <div className="container-adey grid gap-10 md:grid-cols-2">
           <div className="space-y-4">
@@ -131,47 +172,6 @@ function Contact() {
           </form>
         </div>
       </section>
-
-      {settings.address ? (
-        <section className="bg-ink py-16 text-white">
-          <div className="container-adey grid gap-0 overflow-hidden rounded-3xl border border-white/10 md:grid-cols-2">
-            <div className="bg-black/30 p-8 md:p-10">
-              <div className="text-xs font-bold uppercase tracking-[0.2em] text-accent">Find Us</div>
-              <h2 className="mt-2 text-2xl font-bold text-white md:text-3xl">Our Location</h2>
-              <p className="mt-4 text-white/70">Come visit us — we'd love to welcome you in person.</p>
-
-              <div className="mt-6 space-y-3">
-                <div className="text-sm font-semibold text-white/60">Address</div>
-                <div className="text-lg text-white">{settings.address}</div>
-              </div>
-
-              {settings.office_hours ? (
-                <div className="mt-6 space-y-1">
-                  <div className="text-sm font-semibold text-white/60">Office Hours</div>
-                  <div className="text-white/90">{settings.office_hours}</div>
-                </div>
-              ) : null}
-
-              <a
-                href={settings.maps_url || `https://www.google.com/maps?q=${encodeURIComponent(settings.address)}`}
-                target="_blank" rel="noreferrer"
-                className="mt-8 inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3 font-heading font-bold text-accent-foreground transition hover:brightness-95"
-              >
-                <MapPin className="h-4 w-4" /> Get Directions
-              </a>
-            </div>
-            <div className="min-h-[320px] bg-muted">
-              <iframe
-                title="Map to our location"
-                src={`https://www.google.com/maps?q=${encodeURIComponent(settings.address)}&output=embed`}
-                className="h-full min-h-[320px] w-full border-0"
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-              />
-            </div>
-          </div>
-        </section>
-      ) : null}
     </SiteLayout>
   );
 }
