@@ -109,6 +109,7 @@ const SMART_REDIRECTS: { to: string; keywords: string[] }[] = [
 function findSmartRedirect(pathname: string): string | null {
   const slug = pathname.replace(/^\/+|\/+$/g, "").toLowerCase();
   if (!slug) return null;
+  if (slug === "home" || slug === "index" || slug === "index.html" || slug === "homepage") return "/";
   for (const group of SMART_REDIRECTS) {
     if (group.keywords.some((k) => slug === k || slug.includes(k))) return group.to;
   }
