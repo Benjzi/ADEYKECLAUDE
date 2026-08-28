@@ -31,11 +31,43 @@ function Auth() {
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
+  // Recovery mode: true once Supabase confirms the user arrived via a
+  // password-reset email link (fires PASSWORD_RECOVERY, not a normal login).
+  const [recovery, setRecovery] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [newPassword2, setNewPassword2] = useState("");
+  const [savingPassword, setSavingPassword] = useState(false);
+
   useEffect(() => {
-    supabase.auth.getSession().then((res) => {
-      if (res.data.session) navigate({ to: "/aleka", replace: true });
+    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "PASSWORD_RECOVERY") setRecovery(true);
     });
+    // Only auto-redirect an already-logged-in visitor when this ISN'T a
+    // recovery link — otherwise a logged-in admin clicking their reset
+    // email would get bounced straight to /aleka before setting a password.
+    supabase.auth.getSession().then((res) => {
+      if (res.data.session && !window.location.hash.includes("type=recovery")) {
+        navigate({ to: "/aleka", replace: true });
+      }
+    });
+    return () => sub.subscription.unsubscribe();
   }, [navigate]);
+
+  async function onSetNewPassword(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null); setNotice(null);
+    if (newPassword.length < 6) { setError("Password must be at least 6 characters."); return; }
+    if (newPassword !== newPassword2) { setError("Passwords don't match."); return; }
+    setSavingPassword(true);
+    try {
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      if (error) { setError(error.message); return; }
+      setNotice("Password updated — taking you to the dashboard…");
+      setTimeout(() => navigate({ to: "/aleka", replace: true }), 1200);
+    } finally {
+      setSavingPassword(false);
+    }
+  }
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -100,28 +132,47 @@ function Auth() {
               <img src={settings.logo_url || logo} alt={settings.org_name} className="h-16 w-16 rounded-full object-cover ring-2 ring-accent/60" />
               <div className="mt-2 text-sm font-semibold text-ink">{settings.org_name}</div>
             </div>
-            <form onSubmit={onSubmit} className="space-y-4">
-              <div>
-                <label className="text-sm font-semibold text-ink" htmlFor="email">Email</label>
-                <input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 outline-none focus:border-primary" />
-              </div>
-              <div>
-                <label className="text-sm font-semibold text-ink" htmlFor="password">Password</label>
-                <input id="password" type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 outline-none focus:border-primary" />
-              </div>
-              <label className="flex items-center gap-2 text-sm text-body">
-                <input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} className="h-4 w-4 rounded border-input" />
-                Remember me
-              </label>
-              {error ? <p className="text-sm text-destructive">{error}</p> : null}
-              {notice ? <p className="text-sm text-primary">{notice}</p> : null}
-              <button className="btn-primary w-full" type="submit" disabled={loading}>
-                {loading ? "Signing in…" : "Sign in"}
-              </button>
-              <button type="button" onClick={onReset} className="w-full text-center text-xs text-muted-foreground hover:text-primary">
-                Forgot password?
-              </button>
-            </form>
+            {recovery ? (
+              <form onSubmit={onSetNewPassword} className="space-y-4">
+                <p className="text-center text-sm text-body">Choose a new password for your account.</p>
+                <div>
+                  <label className="text-sm font-semibold text-ink" htmlFor="newpw">New password</label>
+                  <input id="newpw" type="password" required minLength={6} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 outline-none focus:border-primary" />
+                </div>
+                <div>
+                  <label className="text-sm font-semibold text-ink" htmlFor="newpw2">Confirm new password</label>
+                  <input id="newpw2" type="password" required minLength={6} value={newPassword2} onChange={(e) => setNewPassword2(e.target.value)} className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 outline-none focus:border-primary" />
+                </div>
+                {error ? <p className="text-sm text-destructive">{error}</p> : null}
+                {notice ? <p className="text-sm text-primary">{notice}</p> : null}
+                <button className="btn-primary w-full" type="submit" disabled={savingPassword}>
+                  {savingPassword ? "Saving…" : "Set new password"}
+                </button>
+              </form>
+            ) : (
+              <form onSubmit={onSubmit} className="space-y-4">
+                <div>
+                  <label className="text-sm font-semibold text-ink" htmlFor="email">Email</label>
+                  <input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 outline-none focus:border-primary" />
+                </div>
+                <div>
+                  <label className="text-sm font-semibold text-ink" htmlFor="password">Password</label>
+                  <input id="password" type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} className="mt-1 w-full rounded-lg border border-input bg-background px-3 py-2 outline-none focus:border-primary" />
+                </div>
+                <label className="flex items-center gap-2 text-sm text-body">
+                  <input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} className="h-4 w-4 rounded border-input" />
+                  Remember me
+                </label>
+                {error ? <p className="text-sm text-destructive">{error}</p> : null}
+                {notice ? <p className="text-sm text-primary">{notice}</p> : null}
+                <button className="btn-primary w-full" type="submit" disabled={loading}>
+                  {loading ? "Signing in…" : "Sign in"}
+                </button>
+                <button type="button" onClick={onReset} className="w-full text-center text-xs text-muted-foreground hover:text-primary">
+                  Forgot password?
+                </button>
+              </form>
+            )}
           </div>
         </div>
       </section>

@@ -722,3 +722,19 @@ alter table public.site_settings
   add column if not exists stat_common_members text,
   add column if not exists stat_children_count text,
   add column if not exists membership_total_offset integer not null default 0;
+
+-- =========================================================
+-- Strategic goals (Five-Year Plan 2026-2030) + policy documents
+-- =========================================================
+alter table public.site_settings
+  add column if not exists strategic_goals jsonb not null default '[]'::jsonb,
+  add column if not exists policy_documents jsonb not null default '[]'::jsonb;
+
+-- Fix: contact form was missing an INSERT policy for the authenticated
+-- role, so a logged-in admin/editor testing the public contact form in
+-- the same browser session got an RLS violation (anon-only insert policy
+-- existed, but staff sessions run as 'authenticated', not 'anon').
+create policy "cm_authenticated_insert" on public.contact_messages
+  for insert to authenticated with check (true);
+
+alter table public.site_settings add column if not exists map_embed_url text;

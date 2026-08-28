@@ -78,25 +78,37 @@ function StringListEditor({
   );
 }
 
-function ImageListEditor({ images, onChange }: { images: string[]; onChange: (imgs: string[]) => void }) {
+function ImageListEditor({ images, onChange, max = 8 }: { images: string[]; onChange: (imgs: string[]) => void; max?: number }) {
+  function move(i: number, dir: -1 | 1) {
+    const j = i + dir;
+    if (j < 0 || j >= images.length) return;
+    const next = [...images];
+    [next[i], next[j]] = [next[j], next[i]];
+    onChange(next);
+  }
   return (
     <div className="space-y-3">
       <div className="grid gap-3 sm:grid-cols-3">
         {images.map((url, i) => (
           <div key={i} className="relative overflow-hidden rounded-xl border border-border">
             <img src={url} alt="" className="aspect-video w-full object-cover" />
+            <span className="absolute left-2 top-2 rounded-full bg-black/60 px-2 py-0.5 text-[10px] font-bold text-white">#{i + 1}</span>
+            <div className="absolute right-2 top-2 flex gap-1">
+              <Button type="button" size="sm" variant="secondary" className="h-7 px-2 text-xs" disabled={i === 0} onClick={() => move(i, -1)}>↑</Button>
+              <Button type="button" size="sm" variant="secondary" className="h-7 px-2 text-xs" disabled={i === images.length - 1} onClick={() => move(i, 1)}>↓</Button>
+            </div>
             <Button
               type="button" size="sm" variant="destructive"
-              className="absolute right-2 top-2 h-7 px-2 text-xs"
+              className="absolute bottom-2 right-2 h-7 px-2 text-xs"
               onClick={() => onChange(images.filter((_, idx) => idx !== i))}
             >Remove</Button>
           </div>
         ))}
       </div>
-      {images.length < 5 ? (
+      {images.length < max ? (
         <MediaUpload folder="settings" value={null} onChange={(url) => url && onChange([...images, url])} />
       ) : (
-        <p className="text-xs text-muted-foreground">Maximum 5 slideshow photos — remove one to add another.</p>
+        <p className="text-xs text-muted-foreground">Maximum {max} slideshow photos — remove one to add another.</p>
       )}
     </div>
   );
@@ -138,8 +150,9 @@ function SettingsAdmin() {
         </Button>
       </div>
 
-      <Tabs defaultValue="org" className="w-full">
+      <Tabs defaultValue="slider" className="w-full">
         <TabsList className="flex-wrap">
+          <TabsTrigger value="slider">Homepage Slider</TabsTrigger>
           <TabsTrigger value="org">Organization</TabsTrigger>
           <TabsTrigger value="contact">Contact</TabsTrigger>
           <TabsTrigger value="social">Social Media</TabsTrigger>
@@ -150,6 +163,17 @@ function SettingsAdmin() {
           <TabsTrigger value="story">Founder &amp; Story</TabsTrigger>
           <TabsTrigger value="membership">Membership</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="slider" className="mt-6 space-y-4 rounded-2xl border border-border bg-card p-6">
+          <div>
+            <h3 className="font-heading text-lg font-bold text-ink">Homepage Photo Slider</h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+              These are the photos that slide across the top of your homepage. Upload your own anytime —
+              use the arrows to reorder them, or remove ones you don't want anymore. Up to 8 photos.
+            </p>
+          </div>
+          <ImageListEditor images={form.hero_slideshow} onChange={(imgs) => set("hero_slideshow", imgs)} max={8} />
+        </TabsContent>
 
         <TabsContent value="org" className="mt-6 space-y-4 rounded-2xl border border-border bg-card p-6">
           <Field label="Organization name">
@@ -187,6 +211,15 @@ function SettingsAdmin() {
           <Field label="Google Maps link">
             <Input value={form.maps_url ?? ""} onChange={(e) => set("maps_url", e.target.value)} placeholder="https://maps.google.com/..." />
           </Field>
+          <div className="rounded-xl border border-primary/20 bg-primary-soft/30 p-4">
+            <Field label="Exact map pin (recommended — precise location, not guessed from the address text)">
+              <Input value={form.map_embed_url ?? ""} onChange={(e) => set("map_embed_url", e.target.value)} placeholder="https://www.google.com/maps/embed?pb=..." />
+            </Field>
+            <p className="mt-2 text-xs text-muted-foreground">
+              On Google Maps: search your exact building/location → <strong>Share</strong> → <strong>Embed a map</strong> → copy the URL inside <code>src="..."</code> and paste it here.
+              If left blank, the map falls back to searching for your Address text above, which can be imprecise.
+            </p>
+          </div>
           <Field label="Office hours">
             <Input value={form.office_hours ?? ""} onChange={(e) => set("office_hours", e.target.value)} placeholder="Mon – Fri · 9:00 – 17:00 EAT" />
           </Field>
@@ -222,13 +255,6 @@ function SettingsAdmin() {
             <Field label="Hero image (optional, used where a static hero image is shown)">
               <MediaUpload folder="settings" value={form.hero_image_url} onChange={(url) => set("hero_image_url", url)} />
             </Field>
-          </div>
-          <div className="border-t border-border pt-6">
-            <Label>Homepage photo slideshow (up to 5 photos)</Label>
-            <p className="mt-1 text-xs text-muted-foreground">Shown as the sliding hero image on the homepage. Replace the temporary photos with your own anytime.</p>
-            <div className="mt-3">
-              <ImageListEditor images={form.hero_slideshow} onChange={(imgs) => set("hero_slideshow", imgs)} />
-            </div>
           </div>
         </TabsContent>
 

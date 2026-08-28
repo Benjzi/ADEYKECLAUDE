@@ -92,7 +92,7 @@ function Contact() {
             <div className="min-h-[320px] bg-muted">
               <iframe
                 title="Map to our location"
-                src={`https://www.google.com/maps?q=${encodeURIComponent(settings.address)}&output=embed`}
+                src={settings.map_embed_url || `https://www.google.com/maps?q=${encodeURIComponent(settings.address)}&output=embed`}
                 className="h-full min-h-[320px] w-full border-0"
                 loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"

@@ -70,6 +70,10 @@ export type SiteSettings = {
   stat_common_members: string | null;
   stat_children_count: string | null;
   membership_total_offset: number;
+
+  strategic_goals: { title: string; points: string[] }[];
+  policy_documents: { title: string; url: string }[];
+  map_embed_url: string | null;
 };
 
 /**
@@ -150,6 +154,10 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   stat_common_members: null,
   stat_children_count: null,
   membership_total_offset: 0,
+
+  strategic_goals: [],
+  policy_documents: [],
+  map_embed_url: null,
 };
 
 export async function getSiteSettings(): Promise<SiteSettings> {

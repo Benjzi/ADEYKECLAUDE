@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { Users, Sparkles, Target, ShieldCheck, HandHeart, Handshake, Megaphone, Quote, BookOpen, History, UsersRound } from "lucide-react";
+import { Users, Sparkles, Target, ShieldCheck, HandHeart, Handshake, Megaphone, Quote, BookOpen, History, UsersRound, FileText } from "lucide-react";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { PageHero } from "@/components/site/PageHero";
 import { listPublicStaff } from "@/lib/cms-public";
@@ -164,7 +164,35 @@ function About() {
                     </div>
                   ))}
                 </div>
-                {settings.goals ? (
+
+                {settings.strategic_goals.length > 0 ? (
+                  <div>
+                    <div className="text-center">
+                      <div className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Five-Year Strategic Plan · 2026–2030</div>
+                      <h3 className="mt-2 text-2xl">Our Strategic Goals</h3>
+                    </div>
+                    <div className="mt-8 grid gap-5 sm:grid-cols-2">
+                      {settings.strategic_goals.map((g, i) => (
+                        <div key={g.title} className="overflow-hidden rounded-2xl border border-border bg-card shadow-[var(--shadow-soft)]">
+                          <div className={`px-5 py-3 font-heading font-bold text-white ${i % 2 === 0 ? "bg-primary" : "bg-accent text-accent-foreground"}`}>
+                            {g.title}
+                          </div>
+                          {g.points.length > 0 ? (
+                            <ul className="space-y-2 p-5">
+                              {g.points.map((pt) => (
+                                <li key={pt} className="flex items-start gap-2 text-sm text-body">
+                                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent-dark" /> {pt}
+                                </li>
+                              ))}
+                            </ul>
+                          ) : (
+                            <p className="p-5 text-sm italic text-muted-foreground">Details coming soon.</p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : settings.goals ? (
                   <div className="rounded-2xl border border-border bg-card p-6">
                     <h3 className="flex items-center gap-2 text-lg"><Megaphone className="h-5 w-5 text-primary" /> Our Goals</h3>
                     <div className="mt-4 grid gap-3 sm:grid-cols-2">
@@ -173,6 +201,23 @@ function About() {
                           <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
                           {g.replace(/\.$/, "")}.
                         </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+
+                {settings.policy_documents.length > 0 ? (
+                  <div className="rounded-2xl border border-border bg-muted/40 p-6">
+                    <h3 className="text-lg">Governance &amp; Policies</h3>
+                    <p className="mt-1 text-sm text-muted-foreground">Read our official policy documents.</p>
+                    <div className="mt-4 flex flex-wrap gap-3">
+                      {settings.policy_documents.map((doc) => (
+                        <a
+                          key={doc.title} href={doc.url} target="_blank" rel="noreferrer"
+                          className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-sm font-semibold text-primary hover:border-primary"
+                        >
+                          <FileText className="h-4 w-4" /> {doc.title}
+                        </a>
                       ))}
                     </div>
                   </div>
