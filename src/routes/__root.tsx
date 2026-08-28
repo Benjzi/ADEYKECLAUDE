@@ -1,4 +1,4 @@
-import { Outlet, createRootRouteWithContext, useMatches, useRouter, Link } from "@tanstack/react-router";
+import { Outlet, createRootRouteWithContext, useMatches, useRouter, useNavigate, Link } from "@tanstack/react-router";
 import { QueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { useSiteSettings, applyThemeMode } from "@/lib/site-settings";
@@ -81,7 +81,52 @@ function RouteHead() {
   return null;
 }
 
+/**
+ * Smart-routing fallback: search engines (and old cached/guessed links)
+ * often point at slug-like paths that were never real routes here —
+ * e.g. "/what-we-do" or "/who-we-are" from on-page headings, "/give"
+ * or "/support" as natural alternate wordings for donating, etc.
+ * Rather than a dead 404, recognize the intent and land on the real page.
+ */
+const SMART_REDIRECTS: { to: string; keywords: string[] }[] = [
+  { to: "/about", keywords: [
+    "what-we-do", "whatwedo", "who-we-are", "whoweare", "about-us", "aboutus",
+    "our-mission", "mission", "our-vision", "vision", "our-story", "story",
+    "our-values", "values", "our-goals", "goals", "objectives", "our-team",
+    "team", "founder", "leadership", "who-are-we",
+  ] },
+  { to: "/donate", keywords: [
+    "give", "giving", "support-us", "support", "contribute", "contribution",
+    "sponsor", "sponsorship", "fundraise", "fundraising", "donation", "donations",
+  ] },
+  { to: "/news-events", keywords: ["news", "events", "event", "blog", "press", "updates", "stories"] },
+  { to: "/gallery", keywords: ["photos", "photo", "media", "album", "albums", "pictures"] },
+  { to: "/contact", keywords: ["contact-us", "reach-us", "get-in-touch", "location", "find-us"] },
+  { to: "/membership", keywords: ["join", "join-us", "member", "members", "register", "signup", "sign-up"] },
+  { to: "/socials", keywords: ["social", "social-media", "follow", "follow-us"] },
+];
+
+function findSmartRedirect(pathname: string): string | null {
+  const slug = pathname.replace(/^\/+|\/+$/g, "").toLowerCase();
+  if (!slug) return null;
+  for (const group of SMART_REDIRECTS) {
+    if (group.keywords.some((k) => slug === k || slug.includes(k))) return group.to;
+  }
+  return null;
+}
+
 function NotFoundComponent() {
+  const router = useRouter();
+  const navigate = useNavigate();
+  const pathname = router.state.location.pathname;
+  const target = findSmartRedirect(pathname);
+
+  useEffect(() => {
+    if (target) navigate({ to: target, replace: true });
+  }, [target, navigate]);
+
+  if (target) return null; // redirecting, nothing to flash on screen
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
