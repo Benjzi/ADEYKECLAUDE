@@ -49,6 +49,15 @@
     </script>
   </head>
   <body>
+    <script>
+      (function () {
+        try {
+          var stored = localStorage.getItem("adeycp-dark-mode");
+          var dark = stored !== null ? stored === "1" : window.matchMedia("(prefers-color-scheme: dark)").matches;
+          if (dark) document.documentElement.classList.add("dark");
+        } catch (e) {}
+      })();
+    </script>
     <div id="root">
       <!--
         Shown instantly, before any JS has loaded/executed, so the tab is

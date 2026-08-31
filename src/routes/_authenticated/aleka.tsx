@@ -2,7 +2,8 @@ import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tan
 import { queryOptions, useSuspenseQuery, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { getMyRoles } from "@/lib/cms-admin";
-import { LayoutDashboard, Newspaper, CalendarDays, LogOut, Home, Image as ImageIcon, Users2, Handshake, ShieldCheck, Inbox, Settings as SettingsIcon, HandCoins } from "lucide-react";
+import { LayoutDashboard, Newspaper, CalendarDays, LogOut, Home, Image as ImageIcon, Users2, Handshake, ShieldCheck, Inbox, Settings as SettingsIcon, HandCoins, Moon, Sun } from "lucide-react";
+import { useDarkMode } from "@/lib/dark-mode";
 import logo from "@/assets/adey-logo.png";
 import { useSiteSettings } from "@/lib/site-settings";
 
@@ -40,6 +41,7 @@ const NAV = [
 
 function AlekaLayout() {
   const settingsData = useSiteSettings();
+  const { isDark, toggle: toggleDark } = useDarkMode();
   const { data: user } = useQuery({
     queryKey: ["me", "user"],
     queryFn: async () => (await supabase.auth.getUser()).data.user,
@@ -108,6 +110,12 @@ function AlekaLayout() {
           })}
         </nav>
         <div className="mx-3 mt-2 space-y-2 pb-4">
+          <button
+            onClick={toggleDark}
+            className="flex w-full items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm font-semibold text-body hover:bg-background"
+          >
+            {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />} {isDark ? "Light mode" : "Dark mode"}
+          </button>
           <Link to="/" className="flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm font-semibold text-body hover:bg-background">
             <Home className="h-4 w-4" /> View site
           </Link>
