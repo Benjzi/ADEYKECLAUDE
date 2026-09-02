@@ -738,3 +738,20 @@ create policy "cm_authenticated_insert" on public.contact_messages
   for insert to authenticated with check (true);
 
 alter table public.site_settings add column if not exists map_embed_url text;
+
+-- Album code (GAL-YYYY-NNN) + optional News link
+alter table public.gallery_categories
+  add column if not exists album_code text,
+  add column if not exists news_id uuid references public.news(id) on delete set null;
+create unique index if not exists gallery_categories_album_code_idx on public.gallery_categories(album_code) where album_code is not null;
+create index if not exists gallery_categories_news_idx on public.gallery_categories(news_id);
+
+create or replace function public.next_album_code()
+returns text language plpgsql security definer set search_path = public as $$
+declare yr text := extract(year from now())::text; n int;
+begin
+  select count(*) + 1 into n from public.gallery_categories where album_code like 'GAL-' || yr || '-%';
+  return 'GAL-' || yr || '-' || lpad(n::text, 3, '0');
+end; $$;
+revoke execute on function public.next_album_code() from public, anon;
+grant execute on function public.next_album_code() to authenticated;

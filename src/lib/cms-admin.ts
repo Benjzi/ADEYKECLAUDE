@@ -170,13 +170,14 @@ export async function listGalleryCategories() {
   return (data ?? []) as any[];
 }
 export async function saveGalleryCategory({ data }: { data: any }) {
-  const payload = {
+  const payload: any = {
     name: data.name,
     slug: data.slug,
     sort_order: data.sort_order,
     description: data.description ?? null,
     cover_image_url: data.cover_image_url ?? null,
     event_id: data.event_id ?? null,
+    news_id: data.news_id ?? null,
   };
   if (data.id) {
     const { data: row, error } = await (supabase.from as any)("gallery_categories")
@@ -185,6 +186,8 @@ export async function saveGalleryCategory({ data }: { data: any }) {
     if (error) throw new Error(error.message);
     return row;
   }
+  const { data: code } = await (supabase.rpc as any)("next_album_code");
+  payload.album_code = code ?? null;
   const { data: row, error } = await (supabase.from as any)("gallery_categories")
     .insert(payload)
     .select().single();

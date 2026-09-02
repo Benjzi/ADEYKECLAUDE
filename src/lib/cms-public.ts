@@ -105,12 +105,10 @@ export async function getPublishedEvent({ data }: { data: { slug: string } }): P
   return resolved;
 }
 
-export async function listEventGalleryAlbums(eventId: string): Promise<{ categories: GalleryCategoryPublic[]; items: GalleryItemPublic[] }> {
-  const c = await supabase
-    .from("gallery_categories")
-    .select("id, name, slug, description, cover_image_url, event_id")
-    .eq("event_id", eventId)
-    .order("sort_order", { ascending: true });
+export async function listLinkedGalleryAlbums(filter: { eventId?: string; newsId?: string }): Promise<{ categories: GalleryCategoryPublic[]; items: GalleryItemPublic[] }> {
+  let q = supabase.from("gallery_categories").select("id, name, slug, description, cover_image_url, event_id, news_id").order("sort_order", { ascending: true });
+  q = filter.eventId ? q.eq("event_id", filter.eventId) : q.eq("news_id", filter.newsId);
+  const c = await q;
   if (c.error) throw new Error(c.error.message);
   const catIds = (c.data ?? []).map((row: any) => row.id);
   if (catIds.length === 0) return { categories: [], items: [] };
@@ -126,6 +124,8 @@ export async function listEventGalleryAlbums(eventId: string): Promise<{ categor
   const categories = await resolveField((c.data ?? []) as GalleryCategoryPublic[], "cover_image_url");
   return { categories, items };
 }
+export const listEventGalleryAlbums = (eventId: string) => listLinkedGalleryAlbums({ eventId });
+export const listNewsGalleryAlbums = (newsId: string) => listLinkedGalleryAlbums({ newsId });
 
 export async function listPublicGallery(): Promise<{ categories: GalleryCategoryPublic[]; items: GalleryItemPublic[] }> {
   const [c, i] = await Promise.all([

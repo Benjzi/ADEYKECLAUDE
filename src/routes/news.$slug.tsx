@@ -2,10 +2,12 @@ import { createFileRoute, Link, notFound, useRouter } from "@tanstack/react-rout
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { useState } from "react";
-import { ArrowLeft, Link2, Facebook, Twitter, Check } from "lucide-react";
+import { useState, useMemo } from "react";
+import { ArrowLeft, Link2, Facebook, Twitter, Check, Images } from "lucide-react";
 import { SiteLayout } from "@/components/site/SiteLayout";
-import { getPublishedNews } from "@/lib/cms-public";
+import { getPublishedNews, listNewsGalleryAlbums } from "@/lib/cms-public";
+import { AlbumCard, AlbumViewer, type Album } from "@/components/site/GalleryAlbum";
+import { useQuery } from "@tanstack/react-query";
 
 const newsQuery = (slug: string) =>
   queryOptions({
@@ -65,6 +67,22 @@ function NewsDetail() {
   const { slug } = Route.useParams();
   const { data: article } = useSuspenseQuery(newsQuery(slug));
   const [copied, setCopied] = useState(false);
+  const [openAlbumId, setOpenAlbumId] = useState<string | null>(null);
+
+  const { data: albumData } = useQuery({
+    queryKey: ["public", "news-albums", article?.id],
+    queryFn: () => listNewsGalleryAlbums(article!.id),
+    enabled: !!article?.id,
+  });
+  const albums = useMemo<Album[]>(() => {
+    if (!albumData) return [];
+    const byCat = new Map<string, Album>();
+    for (const c of albumData.categories) byCat.set(c.id, { id: c.id, name: c.name, description: c.description, cover_image_url: c.cover_image_url, items: [] });
+    for (const it of albumData.items) if (it.category_id && byCat.has(it.category_id)) byCat.get(it.category_id)!.items.push(it);
+    return Array.from(byCat.values()).filter((a) => a.items.length > 0);
+  }, [albumData]);
+  const openAlbum = albums.find((a) => a.id === openAlbumId) ?? null;
+
   if (!article) return null;
 
   const readMins = Math.max(1, Math.round((article.body || "").split(/\s+/).length / 200));
@@ -136,9 +154,24 @@ function NewsDetail() {
                 ))}
               </div>
             ) : null}
+
+            {albums.length > 0 ? (
+              <div className="mt-10 border-t border-border pt-6">
+                <h2 className="flex items-center gap-2 font-heading text-lg font-bold text-ink">
+                  <Images className="h-5 w-5 text-primary" /> Photos from this story
+                </h2>
+                <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3">
+                  {albums.map((album) => (
+                    <AlbumCard key={album.id} album={album} onOpen={() => setOpenAlbumId(album.id)} />
+                  ))}
+                </div>
+              </div>
+            ) : null}
           </div>
         </div>
       </article>
+
+      {openAlbum ? <AlbumViewer album={openAlbum} onClose={() => setOpenAlbumId(null)} /> : null}
     </SiteLayout>
   );
 }

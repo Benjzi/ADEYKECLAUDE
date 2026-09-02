@@ -7,7 +7,7 @@ import { Plus, Pencil, Trash2, ArrowUp, ArrowDown, FolderOpen, Upload, Loader2, 
 import {
   listAllGallery, saveGalleryItem, deleteGalleryItem, reorderGallery,
   listGalleryCategories, saveGalleryCategory, deleteGalleryCategory,
-  uploadMedia, listAllEvents,
+  uploadMedia, listAllEvents, listAllNews,
 } from "@/lib/cms-admin";
 import { MediaUpload, slugify } from "@/components/admin/MediaUpload";
 import { Button } from "@/components/ui/button";
@@ -26,6 +26,7 @@ import {
 const itemsQuery = queryOptions({ queryKey: ["admin", "gallery", "items"], queryFn: () => listAllGallery() });
 const catsQuery = queryOptions({ queryKey: ["admin", "gallery", "cats"], queryFn: () => listGalleryCategories() });
 const eventsQuery = queryOptions({ queryKey: ["admin", "gallery", "events"], queryFn: () => listAllEvents() });
+const newsQuery = queryOptions({ queryKey: ["admin", "gallery", "news"], queryFn: () => listAllNews() });
 
 export const Route = createFileRoute("/_authenticated/aleka/gallery")({
   loader: async ({ context }) => {
@@ -33,6 +34,7 @@ export const Route = createFileRoute("/_authenticated/aleka/gallery")({
       context.queryClient.ensureQueryData(itemsQuery),
       context.queryClient.ensureQueryData(catsQuery),
       context.queryClient.ensureQueryData(eventsQuery),
+      context.queryClient.ensureQueryData(newsQuery),
     ]);
   },
   component: GalleryAdmin,
@@ -46,6 +48,7 @@ function GalleryAdmin() {
   const { data: items } = useSuspenseQuery(itemsQuery);
   const { data: cats } = useSuspenseQuery(catsQuery);
   const { data: events } = useSuspenseQuery(eventsQuery);
+  const { data: news } = useSuspenseQuery(newsQuery);
   const [editor, setEditor] = useState<{ open: boolean; id: string | null }>({ open: false, id: null });
   const del = useServerFn(deleteGalleryItem);
   const reorder = useServerFn(reorderGallery);
@@ -148,7 +151,7 @@ function GalleryAdmin() {
           <p className="text-sm text-muted-foreground">Organize photos into albums, upload in bulk (up to 100 at once), reorder, and publish.</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <AlbumsDialog cats={cats} events={events} />
+          <AlbumsDialog cats={cats} events={events} news={news} />
           <Button onClick={() => setEditor({ open: true, id: null })}><Plus className="mr-2 h-4 w-4" /> Single photo</Button>
         </div>
       </div>
@@ -344,19 +347,19 @@ function ItemEditor({ id, items, cats, onClose }: { id: string | null; items: an
   );
 }
 
-function AlbumsDialog({ cats, events }: { cats: any[]; events: any[] }) {
+function AlbumsDialog({ cats, events, news }: { cats: any[]; events: any[]; news: any[] }) {
   const qc = useQueryClient();
   const save = useServerFn(saveGalleryCategory);
   const del = useServerFn(deleteGalleryCategory);
   const [editingId, setEditingId] = useState<string | null | "new">(null);
-  const [form, setForm] = useState({ name: "", description: "", cover_image_url: "" as string | null, event_id: "none" as string });
+  const [form, setForm] = useState({ name: "", description: "", cover_image_url: "" as string | null, event_id: "none" as string, news_id: "none" as string });
 
   function startNew() {
-    setForm({ name: "", description: "", cover_image_url: null, event_id: "none" });
+    setForm({ name: "", description: "", cover_image_url: null, event_id: "none", news_id: "none" });
     setEditingId("new");
   }
   function startEdit(c: any) {
-    setForm({ name: c.name, description: c.description ?? "", cover_image_url: c.cover_image_url ?? null, event_id: c.event_id ?? "none" });
+    setForm({ name: c.name, description: c.description ?? "", cover_image_url: c.cover_image_url ?? null, event_id: c.event_id ?? "none", news_id: c.news_id ?? "none" });
     setEditingId(c.id);
   }
 
@@ -370,6 +373,7 @@ function AlbumsDialog({ cats, events }: { cats: any[]; events: any[] }) {
         description: form.description || null,
         cover_image_url: form.cover_image_url,
         event_id: form.event_id === "none" ? null : form.event_id,
+        news_id: form.news_id === "none" ? null : form.news_id,
       },
     }),
     onSuccess: () => {
@@ -419,6 +423,16 @@ function AlbumsDialog({ cats, events }: { cats: any[]; events: any[] }) {
                   </SelectContent>
                 </Select>
               </div>
+              <div>
+                <Label>Link to a news article (optional — shows "View Photos" on that article)</Label>
+                <Select value={form.news_id} onValueChange={(v) => setForm((f) => ({ ...f, news_id: v }))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Not linked to a news article</SelectItem>
+                    {news.map((n: any) => <SelectItem key={n.id} value={n.id}>{n.title}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
               <div className="flex justify-end gap-2">
                 <Button type="button" variant="ghost" onClick={() => setEditingId(null)}>Cancel</Button>
                 <Button type="submit" disabled={saveMut.isPending}>{saveMut.isPending ? "Saving…" : "Save album"}</Button>
@@ -438,13 +452,30 @@ function AlbumsDialog({ cats, events }: { cats: any[]; events: any[] }) {
                     {c.cover_image_url ? <img src={c.cover_image_url} alt="" className="h-full w-full object-cover" /> : null}
                   </div>
                   <div className="min-w-0">
-                    <div className="truncate text-sm font-semibold">{c.name}</div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="truncate text-sm font-semibold">{c.name}</span>
+                      {c.album_code ? (
+                        <button
+                          type="button"
+                          title="Copy album ID"
+                          onClick={() => { navigator.clipboard?.writeText(c.album_code); toast.success(`Copied ${c.album_code}`); }}
+                          className="shrink-0 rounded bg-muted px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground hover:bg-primary-soft hover:text-primary"
+                        >{c.album_code}</button>
+                      ) : null}
+                    </div>
                     <div className="truncate text-xs text-muted-foreground">{c.description || `/${c.slug}`}</div>
-                    {c.event_id ? (
-                      <div className="mt-0.5 inline-flex items-center rounded-full bg-primary-soft px-1.5 py-0.5 text-[10px] font-semibold text-primary">
-                        {events.find((e: any) => e.id === c.event_id)?.title ?? "Linked event"}
-                      </div>
-                    ) : null}
+                    <div className="mt-0.5 flex flex-wrap gap-1">
+                      {c.event_id ? (
+                        <span className="inline-flex items-center rounded-full bg-primary-soft px-1.5 py-0.5 text-[10px] font-semibold text-primary">
+                          {events.find((e: any) => e.id === c.event_id)?.title ?? "Linked event"}
+                        </span>
+                      ) : null}
+                      {c.news_id ? (
+                        <span className="inline-flex items-center rounded-full bg-accent/20 px-1.5 py-0.5 text-[10px] font-semibold text-accent-dark">
+                          {news.find((n: any) => n.id === c.news_id)?.title ?? "Linked article"}
+                        </span>
+                      ) : null}
+                    </div>
                   </div>
                 </div>
                 <div className="flex shrink-0 gap-1">
