@@ -53,7 +53,8 @@ function NewsAndEvents() {
 
       <section className="section-pad">
         <div className="container-adey">
-          <div className="mb-10 inline-flex rounded-full border border-border bg-card p-1 shadow-sm">
+          <div className="mb-10 flex justify-center">
+            <div className="inline-flex rounded-full border border-border bg-card p-1 shadow-sm">
             <button
               onClick={() => setTab("news")}
               className={`flex items-center gap-2 rounded-full px-5 py-2 text-sm font-bold transition ${tab === "news" ? "bg-primary text-primary-foreground shadow" : "text-body hover:text-primary"}`}
@@ -66,6 +67,7 @@ function NewsAndEvents() {
             >
               <CalendarDays className="h-4 w-4" /> Events <span className="opacity-70">({events.length})</span>
             </button>
+            </div>
           </div>
 
           {tab === "news" ? (
@@ -84,7 +86,7 @@ function NewsAndEvents() {
           ) : (
             <div className="space-y-14">
               <div>
-                <h2 className="mb-6 font-heading text-2xl font-bold text-ink">Upcoming</h2>
+                <h2 className="mb-6 inline-block border-b-4 border-accent pb-2 font-heading text-2xl font-bold text-ink">Upcoming</h2>
                 {upcoming.length === 0 ? (
                   <EmptyState icon={<CalendarDays className="h-10 w-10" />} title="No upcoming events" description="New events are announced regularly — check back soon." />
                 ) : (
@@ -95,7 +97,7 @@ function NewsAndEvents() {
               </div>
               {past.length > 0 ? (
                 <div>
-                  <h2 className="mb-6 font-heading text-2xl font-bold text-ink">Past events</h2>
+                  <h2 className="mb-6 inline-block border-b-4 border-border pb-2 font-heading text-2xl font-bold text-ink">Past events</h2>
                   <div className="space-y-4">
                     {past.map((e) => <EventRow key={e.id} item={e} muted />)}
                   </div>

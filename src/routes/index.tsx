@@ -246,7 +246,7 @@ function Home() {
                     ) : (
                       <div className="h-full w-full bg-gradient-to-br from-primary/20 to-accent/20" />
                     )}
-                    <div className="absolute left-4 top-4 rounded-xl bg-white px-3 py-2 text-center shadow">
+                    <div className="absolute left-4 top-4 rounded-xl bg-card px-3 py-2 text-center shadow">
                       <div className="text-[10px] font-bold uppercase tracking-wider text-accent-dark">
                         {new Date(e.starts_at).toLocaleDateString(undefined, { month: "short" })}
                       </div>

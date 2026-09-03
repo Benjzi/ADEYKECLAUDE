@@ -31,11 +31,13 @@ export function Navbar() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // At the very top, the header sits over a dark hero (photo slideshow on
-  // the homepage, the colored PageHero gradient everywhere else), so it can
-  // safely go fully transparent with light text/logo. Once scrolled, it
-  // solidifies for readability over normal page content.
-  const solid = scrolled || open;
+  // Transparent-at-top only makes sense on the homepage, which has a
+  // guaranteed full-bleed dark photo slideshow right under the header.
+  // Other pages (article/event detail, donate success, etc.) can start
+  // with plain white content, where white nav text would be invisible —
+  // so those always render the normal solid header.
+  const isHome = pathname === "/";
+  const solid = !isHome || scrolled || open;
 
   return (
     <header
