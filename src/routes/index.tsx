@@ -69,8 +69,8 @@ function Home() {
         <div className="absolute inset-0">
           <HeroSlideshow images={settings.hero_slideshow} altPrefix={settings.org_name} />
         </div>
-        <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/60 to-ink/20" />
-        <div className="absolute inset-0 bg-gradient-to-r from-ink/70 via-ink/20 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/55 to-black/15" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/65 via-black/15 to-transparent" />
 
         <div className="container-adey relative flex min-h-[640px] flex-col justify-end pb-28 pt-32 md:min-h-[720px] md:pb-32">
           <div className="mb-4 inline-flex w-fit items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 backdrop-blur">
@@ -313,7 +313,7 @@ function Home() {
       {/* CTA */}
       <section className="section-pad">
         <div className="container-adey">
-          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-ink to-primary-dark p-10 text-center text-white shadow-[var(--shadow-lifted)] md:p-14">
+          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#0b3d68] to-primary-dark p-10 text-center text-white shadow-[var(--shadow-lifted)] md:p-14">
             <div className="absolute -right-16 -top-16 h-64 w-64 rounded-full bg-accent/25 blur-3xl" />
             <h2 className="relative text-3xl text-white md:text-4xl">{settings.cta_heading}</h2>
             <p className="relative mx-auto mt-3 max-w-xl text-white/85">

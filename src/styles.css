@@ -195,12 +195,12 @@
   font-family: var(--font-heading);
   font-weight: 700;
   font-size: 0.95rem;
-  box-shadow: 0 4px 16px oklch(0.6 0.13 245 / 0.3);
+  box-shadow: 0 4px 16px oklch(0.32 0.09 255 / 0.35);
   transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
   &:hover {
     background: var(--color-primary-dark);
     transform: translateY(-2px);
-    box-shadow: 0 8px 24px oklch(0.6 0.13 245 / 0.4);
+    box-shadow: 0 8px 24px oklch(0.32 0.09 255 / 0.45);
   }
 }
 
@@ -210,17 +210,18 @@
   justify-content: center;
   gap: 0.5rem;
   background: var(--color-accent);
-  color: var(--color-ink);
+  color: var(--color-accent-foreground);
   padding: 0.75rem 1.75rem;
   border-radius: 9999px;
   font-family: var(--font-heading);
   font-weight: 700;
   font-size: 0.95rem;
-  box-shadow: 0 4px 16px oklch(0.78 0.15 55 / 0.35);
-  transition: transform 0.2s ease, background 0.2s ease;
+  box-shadow: 0 4px 16px oklch(0.83 0.15 90 / 0.4);
+  transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
   &:hover {
     background: var(--color-accent-dark);
     transform: translateY(-2px);
+    box-shadow: 0 8px 24px oklch(0.83 0.15 90 / 0.5);
   }
 }
 

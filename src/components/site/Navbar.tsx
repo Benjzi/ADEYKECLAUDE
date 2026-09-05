@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Menu, X, Moon, Sun } from "lucide-react";
 import logo from "@/assets/adey-logo.png";
 import { useSiteSettings } from "@/lib/site-settings";
@@ -19,32 +19,15 @@ export function Navbar() {
   const [open, setOpen] = useState(false);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const settings = useSiteSettings();
-  const [scrolled, setScrolled] = useState(false);
   const { isDark, toggle: toggleDark } = useDarkMode();
 
-  useEffect(() => {
-    function onScroll() {
-      setScrolled(window.scrollY > 40);
-    }
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
-  // Transparent-at-top only makes sense on the homepage, which has a
-  // guaranteed full-bleed dark photo slideshow right under the header.
-  // Other pages (article/event detail, donate success, etc.) can start
-  // with plain white content, where white nav text would be invisible —
-  // so those always render the normal solid header.
-  const isHome = pathname === "/";
-  const solid = !isHome || scrolled || open;
+  // Always solid — the transparent-at-scroll-top effect kept causing
+  // invisible-text problems on pages without a dark hero underneath, so
+  // it's been removed in favor of a clean, reliable header everywhere.
+  const solid = true;
 
   return (
-    <header
-      className={`sticky top-0 z-40 transition-all duration-300 ${
-        solid ? "border-b border-border bg-background/85 backdrop-blur" : "border-b border-transparent bg-transparent"
-      }`}
-    >
+    <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur">
       <div className="container-adey flex h-16 items-center justify-between gap-4">
         <Link to="/" className="flex items-center gap-3" onClick={() => setOpen(false)}>
           <img
@@ -53,7 +36,7 @@ export function Navbar() {
             className="h-11 w-11 rounded-full object-cover ring-2 ring-accent/60"
           />
           <div className="leading-tight">
-            <div className={`line-clamp-1 max-w-[160px] font-heading text-base font-bold transition-colors sm:max-w-[260px] ${solid ? "text-ink" : "text-white drop-shadow"}`}>
+            <div className="line-clamp-1 max-w-[160px] font-heading text-base font-bold text-ink sm:max-w-[260px]">
               {settings.org_name}
             </div>
           </div>
@@ -66,10 +49,8 @@ export function Navbar() {
               <Link
                 key={item.to}
                 to={item.to}
-                className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${
-                  solid
-                    ? active ? "bg-primary-soft text-primary" : "text-body hover:text-primary"
-                    : active ? "bg-white/15 text-white" : "text-white/90 hover:bg-white/10 hover:text-white"
+                className={`rounded-full px-4 py-2 text-sm font-medium transition-all duration-200 ease-out ${
+                  active ? "bg-primary-soft text-primary" : "text-body hover:bg-muted hover:text-primary"
                 }`}
               >
                 {item.label}
