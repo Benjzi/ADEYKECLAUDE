@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Menu, X, Moon, Sun } from "lucide-react";
 import logo from "@/assets/adey-logo.png";
 import { useSiteSettings } from "@/lib/site-settings";
@@ -20,14 +20,32 @@ export function Navbar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const settings = useSiteSettings();
   const { isDark, toggle: toggleDark } = useDarkMode();
+  const [scrolled, setScrolled] = useState(false);
 
-  // Always solid — the transparent-at-scroll-top effect kept causing
-  // invisible-text problems on pages without a dark hero underneath, so
-  // it's been removed in favor of a clean, reliable header everywhere.
-  const solid = true;
+  useEffect(() => {
+    function onScroll() {
+      setScrolled(window.scrollY > 24);
+    }
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  // Frosted-glass effect that's safe everywhere, in both themes: it tints
+  // and blurs with the page's OWN background/text colors (--background,
+  // --ink), never a hardcoded white. That means at the top of any page —
+  // over a photo, a colored hero, or plain white/dark content — the header
+  // reads correctly, because the tint automatically matches whatever
+  // "light" or "dark" means for the current theme. Once scrolled, it
+  // settles into the normal solid bar.
+  const solid = scrolled || open;
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur">
+    <header
+      className={`sticky top-0 z-40 border-b transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${
+        solid ? "border-border bg-background/95 backdrop-blur-md shadow-sm" : "border-transparent bg-background/25 backdrop-blur-md"
+      }`}
+    >
       <div className="container-adey flex h-16 items-center justify-between gap-4">
         <Link to="/" className="flex items-center gap-3" onClick={() => setOpen(false)}>
           <img
@@ -49,8 +67,8 @@ export function Navbar() {
               <Link
                 key={item.to}
                 to={item.to}
-                className={`rounded-full px-4 py-2 text-sm font-medium transition-all duration-200 ease-out ${
-                  active ? "bg-primary-soft text-primary" : "text-body hover:bg-muted hover:text-primary"
+                className={`rounded-full px-4 py-2 text-sm font-medium transition-all duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] ${
+                  active ? "bg-primary-soft text-primary" : "text-body hover:bg-primary-soft/60 hover:text-primary"
                 }`}
               >
                 {item.label}
@@ -62,9 +80,7 @@ export function Navbar() {
             type="button"
             onClick={toggleDark}
             aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
-            className={`ml-1 flex h-9 w-9 items-center justify-center rounded-full transition ${
-              solid ? "text-body hover:bg-muted" : "text-white/90 hover:bg-white/10"
-            }`}
+            className="ml-1 flex h-9 w-9 items-center justify-center rounded-full text-body transition-colors duration-200 hover:bg-primary-soft/60 hover:text-primary"
           >
             {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </button>
@@ -75,7 +91,7 @@ export function Navbar() {
           aria-label={open ? "Close menu" : "Open menu"}
           aria-expanded={open}
           onClick={() => setOpen((v) => !v)}
-          className={`rounded-md p-2 lg:hidden ${solid ? "text-primary" : "text-white"}`}
+          className="rounded-md p-2 text-primary lg:hidden"
         >
           {open ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </button>
@@ -89,7 +105,7 @@ export function Navbar() {
                 key={item.to}
                 to={item.to}
                 onClick={() => setOpen(false)}
-                className="rounded-md px-2 py-3 text-sm font-medium text-body hover:bg-primary-soft hover:text-primary"
+                className="rounded-md px-2 py-3 text-sm font-medium text-body transition-colors duration-200 hover:bg-primary-soft hover:text-primary"
               >
                 {item.label}
               </Link>
@@ -100,7 +116,7 @@ export function Navbar() {
             <button
               type="button"
               onClick={toggleDark}
-              className="mt-2 flex items-center justify-center gap-2 rounded-md px-2 py-3 text-sm font-medium text-body hover:bg-muted"
+              className="mt-2 flex items-center justify-center gap-2 rounded-md px-2 py-3 text-sm font-medium text-body transition-colors duration-200 hover:bg-muted"
             >
               {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />} {isDark ? "Light mode" : "Dark mode"}
             </button>
