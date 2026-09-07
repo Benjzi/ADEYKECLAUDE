@@ -1,5 +1,6 @@
 import { useQuery, useQueryClient, useMutation, queryOptions } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { signMediaUrlsBatch } from "@/lib/media-url";
 
 export type SiteSettings = {
   org_name: string;
@@ -164,7 +165,24 @@ export async function getSiteSettings(): Promise<SiteSettings> {
   const { data, error } = await (supabase.from as any)("site_settings").select("*").eq("id", 1).maybeSingle();
   if (error) throw new Error(error.message);
   if (!data) return DEFAULT_SETTINGS;
-  return { ...DEFAULT_SETTINGS, ...data };
+  const merged = { ...DEFAULT_SETTINGS, ...data };
+
+  // Images stored in the private `media` bucket are only ever served via
+  // signed URLs, which expire after 7 days. Gallery photos already get
+  // re-signed fresh on every read — these site-settings image fields
+  // (logo, favicon, hero photos, founder/testimony photos) did not, so
+  // they'd silently stop loading a week after being uploaded. Re-sign them
+  // all here, every time settings are fetched, so they never go stale.
+  const singleFields: (keyof SiteSettings)[] = ["logo_url", "favicon_url", "hero_image_url", "footer_logo_url", "founder_photo_url", "testimony_photo_url"];
+  const singleValues = singleFields.map((f) => (merged[f] as string | null) ?? null);
+  const [signedSingles, signedSlideshow] = await Promise.all([
+    signMediaUrlsBatch(singleValues),
+    signMediaUrlsBatch(merged.hero_slideshow ?? []),
+  ]);
+  singleFields.forEach((f, i) => { (merged as any)[f] = signedSingles[i]; });
+  merged.hero_slideshow = signedSlideshow.filter((u): u is string => !!u);
+
+  return merged;
 }
 
 export const siteSettingsQuery = queryOptions({
