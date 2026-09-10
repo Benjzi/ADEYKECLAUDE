@@ -60,14 +60,14 @@ export function Navbar() {
           </div>
         </Link>
 
-        <nav className="hidden items-center gap-1 lg:flex">
+        <nav className="hidden items-center gap-0.5 xl:flex">
           {NAV.map((item) => {
             const active = item.to === "/" ? pathname === "/" : pathname.startsWith(item.to);
             return (
               <Link
                 key={item.to}
                 to={item.to}
-                className={`rounded-full px-4 py-2 text-sm font-medium transition-all duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] ${
+                className={`whitespace-nowrap rounded-full px-3.5 py-2 text-sm font-medium transition-all duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] ${
                   active ? "bg-primary-soft text-primary" : "text-body hover:bg-primary-soft/60 hover:text-primary"
                 }`}
               >
@@ -91,14 +91,14 @@ export function Navbar() {
           aria-label={open ? "Close menu" : "Open menu"}
           aria-expanded={open}
           onClick={() => setOpen((v) => !v)}
-          className="rounded-md p-2 text-primary lg:hidden"
+          className="rounded-md p-2 text-primary xl:hidden"
         >
           {open ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </button>
       </div>
 
       {open ? (
-        <div className="border-t border-border bg-background lg:hidden">
+        <div className="border-t border-border bg-background xl:hidden">
           <nav className="container-adey flex flex-col py-3">
             {NAV.map((item) => (
               <Link
