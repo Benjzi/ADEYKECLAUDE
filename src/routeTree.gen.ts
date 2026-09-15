@@ -28,13 +28,14 @@ import { Route as NewsSlugRouteImport } from './routes/news.$slug'
 import { Route as AuthenticatedAlekaIndexRouteImport } from './routes/_authenticated/aleka.index'
 import { Route as AuthenticatedAlekaDonorsRouteImport } from './routes/_authenticated/aleka.donors'
 import { Route as AuthenticatedAlekaEventsRouteImport } from './routes/_authenticated/aleka.events'
-import { Route as AuthenticatedAlekaGalleryRouteImport } from './routes/_authenticated/aleka.gallery'
 import { Route as AuthenticatedAlekaInboxRouteImport } from './routes/_authenticated/aleka.inbox'
 import { Route as AuthenticatedAlekaNewsRouteImport } from './routes/_authenticated/aleka.news'
 import { Route as AuthenticatedAlekaPartnersRouteImport } from './routes/_authenticated/aleka.partners'
 import { Route as AuthenticatedAlekaSettingsRouteImport } from './routes/_authenticated/aleka.settings'
 import { Route as AuthenticatedAlekaStaffRouteImport } from './routes/_authenticated/aleka.staff'
 import { Route as AuthenticatedAlekaUsersRouteImport } from './routes/_authenticated/aleka.users'
+import { Route as AuthenticatedAlekaGalleryIndexRouteImport } from './routes/_authenticated/aleka.gallery.index'
+import { Route as AuthenticatedAlekaGalleryAlbumIdRouteImport } from './routes/_authenticated/aleka.gallery.$albumId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -132,12 +133,6 @@ const AuthenticatedAlekaEventsRoute =
     path: '/events',
     getParentRoute: () => AuthenticatedAlekaRoute,
   } as any)
-const AuthenticatedAlekaGalleryRoute =
-  AuthenticatedAlekaGalleryRouteImport.update({
-    id: '/gallery',
-    path: '/gallery',
-    getParentRoute: () => AuthenticatedAlekaRoute,
-  } as any)
 const AuthenticatedAlekaInboxRoute = AuthenticatedAlekaInboxRouteImport.update({
   id: '/inbox',
   path: '/inbox',
@@ -170,6 +165,18 @@ const AuthenticatedAlekaUsersRoute = AuthenticatedAlekaUsersRouteImport.update({
   path: '/users',
   getParentRoute: () => AuthenticatedAlekaRoute,
 } as any)
+const AuthenticatedAlekaGalleryIndexRoute =
+  AuthenticatedAlekaGalleryIndexRouteImport.update({
+    id: '/gallery/',
+    path: '/gallery/',
+    getParentRoute: () => AuthenticatedAlekaRoute,
+  } as any)
+const AuthenticatedAlekaGalleryAlbumIdRoute =
+  AuthenticatedAlekaGalleryAlbumIdRouteImport.update({
+    id: '/gallery/$albumId',
+    path: '/gallery/$albumId',
+    getParentRoute: () => AuthenticatedAlekaRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -189,7 +196,6 @@ export interface FileRoutesByFullPath {
   '/news/': typeof NewsIndexRoute
   '/aleka/donors': typeof AuthenticatedAlekaDonorsRoute
   '/aleka/events': typeof AuthenticatedAlekaEventsRoute
-  '/aleka/gallery': typeof AuthenticatedAlekaGalleryRoute
   '/aleka/inbox': typeof AuthenticatedAlekaInboxRoute
   '/aleka/news': typeof AuthenticatedAlekaNewsRoute
   '/aleka/partners': typeof AuthenticatedAlekaPartnersRoute
@@ -197,6 +203,8 @@ export interface FileRoutesByFullPath {
   '/aleka/staff': typeof AuthenticatedAlekaStaffRoute
   '/aleka/users': typeof AuthenticatedAlekaUsersRoute
   '/aleka/': typeof AuthenticatedAlekaIndexRoute
+  '/aleka/gallery/$albumId': typeof AuthenticatedAlekaGalleryAlbumIdRoute
+  '/aleka/gallery/': typeof AuthenticatedAlekaGalleryIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -215,7 +223,6 @@ export interface FileRoutesByTo {
   '/news': typeof NewsIndexRoute
   '/aleka/donors': typeof AuthenticatedAlekaDonorsRoute
   '/aleka/events': typeof AuthenticatedAlekaEventsRoute
-  '/aleka/gallery': typeof AuthenticatedAlekaGalleryRoute
   '/aleka/inbox': typeof AuthenticatedAlekaInboxRoute
   '/aleka/news': typeof AuthenticatedAlekaNewsRoute
   '/aleka/partners': typeof AuthenticatedAlekaPartnersRoute
@@ -223,6 +230,8 @@ export interface FileRoutesByTo {
   '/aleka/staff': typeof AuthenticatedAlekaStaffRoute
   '/aleka/users': typeof AuthenticatedAlekaUsersRoute
   '/aleka': typeof AuthenticatedAlekaIndexRoute
+  '/aleka/gallery/$albumId': typeof AuthenticatedAlekaGalleryAlbumIdRoute
+  '/aleka/gallery': typeof AuthenticatedAlekaGalleryIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -244,7 +253,6 @@ export interface FileRoutesById {
   '/news/': typeof NewsIndexRoute
   '/_authenticated/aleka/donors': typeof AuthenticatedAlekaDonorsRoute
   '/_authenticated/aleka/events': typeof AuthenticatedAlekaEventsRoute
-  '/_authenticated/aleka/gallery': typeof AuthenticatedAlekaGalleryRoute
   '/_authenticated/aleka/inbox': typeof AuthenticatedAlekaInboxRoute
   '/_authenticated/aleka/news': typeof AuthenticatedAlekaNewsRoute
   '/_authenticated/aleka/partners': typeof AuthenticatedAlekaPartnersRoute
@@ -252,6 +260,8 @@ export interface FileRoutesById {
   '/_authenticated/aleka/staff': typeof AuthenticatedAlekaStaffRoute
   '/_authenticated/aleka/users': typeof AuthenticatedAlekaUsersRoute
   '/_authenticated/aleka/': typeof AuthenticatedAlekaIndexRoute
+  '/_authenticated/aleka/gallery/$albumId': typeof AuthenticatedAlekaGalleryAlbumIdRoute
+  '/_authenticated/aleka/gallery/': typeof AuthenticatedAlekaGalleryIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -273,7 +283,6 @@ export interface FileRouteTypes {
     | '/news/'
     | '/aleka/donors'
     | '/aleka/events'
-    | '/aleka/gallery'
     | '/aleka/inbox'
     | '/aleka/news'
     | '/aleka/partners'
@@ -281,6 +290,8 @@ export interface FileRouteTypes {
     | '/aleka/staff'
     | '/aleka/users'
     | '/aleka/'
+    | '/aleka/gallery/$albumId'
+    | '/aleka/gallery/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -299,7 +310,6 @@ export interface FileRouteTypes {
     | '/news'
     | '/aleka/donors'
     | '/aleka/events'
-    | '/aleka/gallery'
     | '/aleka/inbox'
     | '/aleka/news'
     | '/aleka/partners'
@@ -307,6 +317,8 @@ export interface FileRouteTypes {
     | '/aleka/staff'
     | '/aleka/users'
     | '/aleka'
+    | '/aleka/gallery/$albumId'
+    | '/aleka/gallery'
   id:
     | '__root__'
     | '/'
@@ -327,7 +339,6 @@ export interface FileRouteTypes {
     | '/news/'
     | '/_authenticated/aleka/donors'
     | '/_authenticated/aleka/events'
-    | '/_authenticated/aleka/gallery'
     | '/_authenticated/aleka/inbox'
     | '/_authenticated/aleka/news'
     | '/_authenticated/aleka/partners'
@@ -335,6 +346,8 @@ export interface FileRouteTypes {
     | '/_authenticated/aleka/staff'
     | '/_authenticated/aleka/users'
     | '/_authenticated/aleka/'
+    | '/_authenticated/aleka/gallery/$albumId'
+    | '/_authenticated/aleka/gallery/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -489,13 +502,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAlekaEventsRouteImport
       parentRoute: typeof AuthenticatedAlekaRoute
     }
-    '/_authenticated/aleka/gallery': {
-      id: '/_authenticated/aleka/gallery'
-      path: '/gallery'
-      fullPath: '/aleka/gallery'
-      preLoaderRoute: typeof AuthenticatedAlekaGalleryRouteImport
-      parentRoute: typeof AuthenticatedAlekaRoute
-    }
     '/_authenticated/aleka/inbox': {
       id: '/_authenticated/aleka/inbox'
       path: '/inbox'
@@ -538,13 +544,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAlekaUsersRouteImport
       parentRoute: typeof AuthenticatedAlekaRoute
     }
+    '/_authenticated/aleka/gallery/': {
+      id: '/_authenticated/aleka/gallery/'
+      path: '/gallery'
+      fullPath: '/aleka/gallery/'
+      preLoaderRoute: typeof AuthenticatedAlekaGalleryIndexRouteImport
+      parentRoute: typeof AuthenticatedAlekaRoute
+    }
+    '/_authenticated/aleka/gallery/$albumId': {
+      id: '/_authenticated/aleka/gallery/$albumId'
+      path: '/gallery/$albumId'
+      fullPath: '/aleka/gallery/$albumId'
+      preLoaderRoute: typeof AuthenticatedAlekaGalleryAlbumIdRouteImport
+      parentRoute: typeof AuthenticatedAlekaRoute
+    }
   }
 }
 
 interface AuthenticatedAlekaRouteChildren {
   AuthenticatedAlekaDonorsRoute: typeof AuthenticatedAlekaDonorsRoute
   AuthenticatedAlekaEventsRoute: typeof AuthenticatedAlekaEventsRoute
-  AuthenticatedAlekaGalleryRoute: typeof AuthenticatedAlekaGalleryRoute
   AuthenticatedAlekaInboxRoute: typeof AuthenticatedAlekaInboxRoute
   AuthenticatedAlekaNewsRoute: typeof AuthenticatedAlekaNewsRoute
   AuthenticatedAlekaPartnersRoute: typeof AuthenticatedAlekaPartnersRoute
@@ -552,12 +571,13 @@ interface AuthenticatedAlekaRouteChildren {
   AuthenticatedAlekaStaffRoute: typeof AuthenticatedAlekaStaffRoute
   AuthenticatedAlekaUsersRoute: typeof AuthenticatedAlekaUsersRoute
   AuthenticatedAlekaIndexRoute: typeof AuthenticatedAlekaIndexRoute
+  AuthenticatedAlekaGalleryAlbumIdRoute: typeof AuthenticatedAlekaGalleryAlbumIdRoute
+  AuthenticatedAlekaGalleryIndexRoute: typeof AuthenticatedAlekaGalleryIndexRoute
 }
 
 const AuthenticatedAlekaRouteChildren: AuthenticatedAlekaRouteChildren = {
   AuthenticatedAlekaDonorsRoute: AuthenticatedAlekaDonorsRoute,
   AuthenticatedAlekaEventsRoute: AuthenticatedAlekaEventsRoute,
-  AuthenticatedAlekaGalleryRoute: AuthenticatedAlekaGalleryRoute,
   AuthenticatedAlekaInboxRoute: AuthenticatedAlekaInboxRoute,
   AuthenticatedAlekaNewsRoute: AuthenticatedAlekaNewsRoute,
   AuthenticatedAlekaPartnersRoute: AuthenticatedAlekaPartnersRoute,
@@ -565,6 +585,8 @@ const AuthenticatedAlekaRouteChildren: AuthenticatedAlekaRouteChildren = {
   AuthenticatedAlekaStaffRoute: AuthenticatedAlekaStaffRoute,
   AuthenticatedAlekaUsersRoute: AuthenticatedAlekaUsersRoute,
   AuthenticatedAlekaIndexRoute: AuthenticatedAlekaIndexRoute,
+  AuthenticatedAlekaGalleryAlbumIdRoute: AuthenticatedAlekaGalleryAlbumIdRoute,
+  AuthenticatedAlekaGalleryIndexRoute: AuthenticatedAlekaGalleryIndexRoute,
 }
 
 const AuthenticatedAlekaRouteWithChildren =
