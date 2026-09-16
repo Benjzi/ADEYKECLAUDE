@@ -765,3 +765,8 @@ alter table public.site_settings
   add column if not exists contact_person_email text,
   add column if not exists address_subcity text,
   add column if not exists address_woreda text;
+
+-- Featured YouTube videos on the homepage
+alter table public.site_settings
+  add column if not exists featured_videos jsonb not null default '[]'::jsonb,
+  add column if not exists videos_heading text default 'Watch our story';

@@ -161,6 +161,7 @@ function SettingsAdmin() {
           <TabsTrigger value="seo">SEO</TabsTrigger>
           <TabsTrigger value="homepage">Homepage</TabsTrigger>
           <TabsTrigger value="programs">Programs</TabsTrigger>
+          <TabsTrigger value="videos">Videos</TabsTrigger>
           <TabsTrigger value="story">Founder &amp; Story</TabsTrigger>
           <TabsTrigger value="membership">Membership</TabsTrigger>
         </TabsList>
@@ -468,6 +469,35 @@ function SettingsAdmin() {
           ))}
           <Button type="button" variant="outline" onClick={() => set("programs", [...form.programs, { title: "", body: "" }])}>
             + Add program
+          </Button>
+        </TabsContent>
+
+        <TabsContent value="videos" className="mt-6 space-y-4 rounded-2xl border border-border bg-card p-6">
+          <div>
+            <h3 className="font-heading text-sm font-bold uppercase tracking-wider text-primary">Featured Videos</h3>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Paste YouTube links (any format: watch?v=, youtu.be/, /shorts/). One video shows on its own;
+              add more and visitors get a clickable thumbnail slider. Leave empty to hide the section entirely.
+            </p>
+          </div>
+          <Field label="Section heading">
+            <Input value={form.videos_heading ?? ""} onChange={(e) => set("videos_heading", e.target.value)} placeholder="Watch our story" />
+          </Field>
+          {form.featured_videos.map((v, i) => (
+            <div key={i} className="rounded-xl border border-border p-4">
+              <div className="flex items-center justify-between gap-2">
+                <Label>Video {i + 1}</Label>
+                <Button type="button" variant="ghost" size="sm" className="text-destructive"
+                  onClick={() => set("featured_videos", form.featured_videos.filter((_, idx) => idx !== i))}>Remove</Button>
+              </div>
+              <Input className="mt-2" placeholder="Title (optional)" value={v.title}
+                onChange={(e) => set("featured_videos", form.featured_videos.map((x, idx) => idx === i ? { ...x, title: e.target.value } : x))} />
+              <Input className="mt-2" placeholder="https://www.youtube.com/watch?v=..." value={v.url}
+                onChange={(e) => set("featured_videos", form.featured_videos.map((x, idx) => idx === i ? { ...x, url: e.target.value } : x))} />
+            </div>
+          ))}
+          <Button type="button" variant="outline" onClick={() => set("featured_videos", [...form.featured_videos, { title: "", url: "" }])}>
+            + Add video
           </Button>
         </TabsContent>
 

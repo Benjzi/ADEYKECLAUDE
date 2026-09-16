@@ -83,6 +83,9 @@ export type SiteSettings = {
   contact_person_email: string | null;
   address_subcity: string | null;
   address_woreda: string | null;
+
+  featured_videos: { title: string; url: string }[];
+  videos_heading: string | null;
 };
 
 /**
@@ -175,6 +178,9 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   contact_person_email: null,
   address_subcity: null,
   address_woreda: null,
+
+  featured_videos: [],
+  videos_heading: "Watch our story",
 };
 
 export async function getSiteSettings(): Promise<SiteSettings> {

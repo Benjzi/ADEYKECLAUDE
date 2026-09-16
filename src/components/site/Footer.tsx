@@ -54,6 +54,8 @@ export function Footer() {
           <Link to="/auth" className="block font-heading text-sm font-bold uppercase tracking-wider text-white no-underline">Explore</Link>
           <ul className="mt-4 space-y-2 text-sm">
             <li><Link to="/about" className="hover:text-accent">About Us</Link></li>
+            <li><Link to="/programs" className="hover:text-accent">Our Programs</Link></li>
+            <li><Link to="/partners" className="hover:text-accent">Our Partners</Link></li>
             <li><Link to="/news-events" className="hover:text-accent">News &amp; Events</Link></li>
             <li><Link to="/gallery" className="hover:text-accent">Gallery</Link></li>
             <li><Link to="/membership" className="hover:text-accent">Membership</Link></li>

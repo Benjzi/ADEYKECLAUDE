@@ -3,6 +3,7 @@ import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { HandHeart, HeartHandshake, GraduationCap, Users, Stethoscope, Sparkles, ArrowRight, MapPin, PlayCircle } from "lucide-react";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { HeroSlideshow } from "@/components/site/HeroSlideshow";
+import { FeaturedVideos } from "@/components/site/FeaturedVideos";
 import { listPublicPartners, listPublishedNews, listPublishedEvents } from "@/lib/cms-public";
 import { useSiteSettings, siteSettingsQuery } from "@/lib/site-settings";
 
@@ -194,30 +195,8 @@ function Home() {
         </section>
       ) : null}
 
-      {/* VIDEO SECTION (dedicated wide) */}
-      <section className="section-pad">
-        <div className="container-adey">
-          <div className="mx-auto max-w-2xl text-center">
-            <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-primary">
-              <PlayCircle className="h-4 w-4" /> Watch our story
-            </div>
-            <h2 className="mt-3 text-3xl md:text-4xl">Meet the children and families of Adey CP.</h2>
-            <p className="mt-3 text-body">A short film about the work, the families, and the change we're building together.</p>
-          </div>
-          <div className="mx-auto mt-10 max-w-4xl overflow-hidden rounded-3xl border border-border bg-black shadow-[var(--shadow-lifted)]">
-            <div className="aspect-video w-full">
-              <iframe
-                className="h-full w-full"
-                src="https://www.youtube.com/embed/J4Hrt4U-_iA?rel=0&modestbranding=1"
-                title="Adey CP — Full story"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowFullScreen
-                loading="lazy"
-              />
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* FEATURED VIDEOS (admin-managed YouTube links) */}
+      <FeaturedVideos videos={settings.featured_videos} heading={settings.videos_heading} />
 
       {/* FEATURED EVENTS */}
       {featuredEvents.length > 0 && (
@@ -342,6 +321,9 @@ function Home() {
                 We collaborate with government bureaus, health institutions, and community organizations
                 across Ethiopia to expand what's possible for children with Cerebral Palsy.
               </p>
+              <Link to="/partners" className="mt-5 inline-flex items-center gap-1.5 text-sm font-bold text-primary hover:underline">
+                View all partners <ArrowRight className="h-4 w-4" />
+              </Link>
             </div>
             <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {partners.map((p) => {

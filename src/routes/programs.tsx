@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { ChevronDown, Phone, Mail, MapPin, ArrowRight, HandHeart } from "lucide-react";
+import { ChevronDown, Phone, Mail, MapPin, ArrowRight, HandHeart, Baby, Users, Building2 } from "lucide-react";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { PageHero } from "@/components/site/PageHero";
 import { useSiteSettings } from "@/lib/site-settings";
@@ -118,6 +118,67 @@ function Programs() {
               <Link to="/donate" className="btn-accent mt-4 w-full">Donate now</Link>
             </div>
           </aside>
+        </div>
+      </section>
+
+      {/* Who our programs serve */}
+      <section className="section-pad bg-muted/40">
+        <div className="container-adey">
+          <div className="mx-auto max-w-2xl text-center">
+            <div className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Who We Serve</div>
+            <h2 className="mt-3 text-3xl md:text-4xl">Every program starts with a child and a family.</h2>
+          </div>
+          <div className="mt-12 grid gap-6 md:grid-cols-3">
+            {[
+              { icon: Baby, t: "Children with Cerebral Palsy", b: "From early diagnosis through adolescence — therapy, education, assistive devices, and the chance to reach their own milestones." },
+              { icon: Users, t: "Mothers & Caregivers", b: "Training, peer support, and income-generating skills so families are equipped and never carry this alone." },
+              { icon: Building2, t: "Communities & Institutions", b: "Health workers, teachers, and policymakers — because lasting change needs the whole system, not just one clinic." },
+            ].map((c) => (
+              <div key={c.t} className="rounded-2xl border border-border bg-card p-6 shadow-[var(--shadow-soft)]">
+                <div className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-primary-soft text-primary">
+                  <c.icon className="h-5 w-5" />
+                </div>
+                <h3 className="mt-4 font-heading text-lg font-bold text-ink">{c.t}</h3>
+                <p className="mt-2 text-sm text-body">{c.b}</p>
+              </div>
+            ))}
+          </div>
+
+          {s.impact_stats.length > 0 ? (
+            <div className="mt-12 grid grid-cols-2 gap-4 md:grid-cols-4">
+              {s.impact_stats.map((k) => (
+                <div key={k.l} className="rounded-2xl border border-border bg-card p-5 text-center shadow-[var(--shadow-soft)]">
+                  <div className="font-heading text-2xl font-bold text-primary">{k.n}</div>
+                  <div className="mt-1 text-xs text-body">{k.l}</div>
+                </div>
+              ))}
+            </div>
+          ) : null}
+        </div>
+      </section>
+
+      {/* Referral / next steps */}
+      <section className="section-pad">
+        <div className="container-adey">
+          <div className="grid gap-6 md:grid-cols-3">
+            {[
+              { n: "01", t: "Reach out", b: "Contact us by phone, email, or the contact form — or visit us in person." },
+              { n: "02", t: "Assessment", b: "We learn about the child's needs and connect them with the right therapy and support." },
+              { n: "03", t: "Ongoing support", b: "Regular sessions, caregiver training, assistive devices, and a community that stays with you." },
+            ].map((step) => (
+              <div key={step.n} className="rounded-2xl border border-border bg-card p-6">
+                <div className="font-heading text-3xl font-bold text-accent-dark">{step.n}</div>
+                <h3 className="mt-2 font-heading text-lg font-bold text-ink">{step.t}</h3>
+                <p className="mt-1 text-sm text-body">{step.b}</p>
+              </div>
+            ))}
+          </div>
+          <div className="mt-10 flex flex-wrap justify-center gap-3">
+            <Link to="/contact" className="btn-primary">Talk to our team <ArrowRight className="h-4 w-4" /></Link>
+            <Link to="/partners" className="inline-flex items-center gap-2 rounded-full border-2 border-border px-6 py-3 font-heading font-bold text-body transition hover:border-primary hover:text-primary">
+              See our partners
+            </Link>
+          </div>
         </div>
       </section>
     </SiteLayout>
