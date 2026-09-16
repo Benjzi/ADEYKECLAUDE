@@ -8,10 +8,10 @@ import { useDarkMode } from "@/lib/dark-mode";
 const NAV = [
   { to: "/", label: "Home" },
   { to: "/about", label: "About" },
+  { to: "/programs", label: "Our Programs" },
   { to: "/gallery", label: "Gallery" },
   { to: "/news-events", label: "News & Events" },
   { to: "/membership", label: "Membership" },
-  { to: "/socials", label: "Socials" },
   { to: "/contact", label: "Contact" },
 ] as const;
 

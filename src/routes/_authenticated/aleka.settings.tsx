@@ -160,6 +160,7 @@ function SettingsAdmin() {
           <TabsTrigger value="theme">Theme Color</TabsTrigger>
           <TabsTrigger value="seo">SEO</TabsTrigger>
           <TabsTrigger value="homepage">Homepage</TabsTrigger>
+          <TabsTrigger value="programs">Programs</TabsTrigger>
           <TabsTrigger value="story">Founder &amp; Story</TabsTrigger>
           <TabsTrigger value="membership">Membership</TabsTrigger>
         </TabsList>
@@ -219,6 +220,23 @@ function SettingsAdmin() {
               On Google Maps: search your exact building/location → <strong>Share</strong> → <strong>Embed a map</strong> → copy the URL inside <code>src="..."</code> and paste it here.
               If left blank, the map falls back to searching for your Address text above, which can be imprecise.
             </p>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Sub City">
+              <Input value={form.address_subcity ?? ""} onChange={(e) => set("address_subcity", e.target.value)} placeholder="e.g. Lemi Kura Sub City" />
+            </Field>
+            <Field label="Woreda / Area">
+              <Input value={form.address_woreda ?? ""} onChange={(e) => set("address_woreda", e.target.value)} placeholder="e.g. Ayat 49, near Hosea Real Estate" />
+            </Field>
+          </div>
+          <div className="rounded-xl border border-border p-4">
+            <h4 className="text-sm font-bold text-primary">Contact person</h4>
+            <div className="mt-3 grid gap-4 sm:grid-cols-2">
+              <Field label="Name"><Input value={form.contact_person_name ?? ""} onChange={(e) => set("contact_person_name", e.target.value)} /></Field>
+              <Field label="Title"><Input value={form.contact_person_title ?? ""} onChange={(e) => set("contact_person_title", e.target.value)} /></Field>
+              <Field label="Phone"><Input value={form.contact_person_phone ?? ""} onChange={(e) => set("contact_person_phone", e.target.value)} /></Field>
+              <Field label="Email"><Input value={form.contact_person_email ?? ""} onChange={(e) => set("contact_person_email", e.target.value)} /></Field>
+            </div>
           </div>
           <Field label="Office hours">
             <Input value={form.office_hours ?? ""} onChange={(e) => set("office_hours", e.target.value)} placeholder="Mon – Fri · 9:00 – 17:00 EAT" />
@@ -428,6 +446,29 @@ function SettingsAdmin() {
               </Field>
             </div>
           </div>
+        </TabsContent>
+
+        <TabsContent value="programs" className="mt-6 space-y-4 rounded-2xl border border-border bg-card p-6">
+          <div>
+            <h3 className="font-heading text-sm font-bold uppercase tracking-wider text-primary">Our Programs</h3>
+            <p className="mt-1 text-xs text-muted-foreground">Shown on the public "Our Programs" page as an expandable list.</p>
+          </div>
+          {form.programs.map((pr, i) => (
+            <div key={i} className="rounded-xl border border-border p-4">
+              <div className="flex items-center justify-between gap-2">
+                <Label>Program {i + 1}</Label>
+                <Button type="button" variant="ghost" size="sm" className="text-destructive"
+                  onClick={() => set("programs", form.programs.filter((_, idx) => idx !== i))}>Remove</Button>
+              </div>
+              <Input className="mt-2" placeholder="Title" value={pr.title}
+                onChange={(e) => set("programs", form.programs.map((x, idx) => idx === i ? { ...x, title: e.target.value } : x))} />
+              <Textarea className="mt-2" rows={3} placeholder="Description" value={pr.body}
+                onChange={(e) => set("programs", form.programs.map((x, idx) => idx === i ? { ...x, body: e.target.value } : x))} />
+            </div>
+          ))}
+          <Button type="button" variant="outline" onClick={() => set("programs", [...form.programs, { title: "", body: "" }])}>
+            + Add program
+          </Button>
         </TabsContent>
 
         <TabsContent value="story" className="mt-6 space-y-8 rounded-2xl border border-border bg-card p-6">

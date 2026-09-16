@@ -331,27 +331,49 @@ function Home() {
         </div>
       </section>
 
-      {/* TRUSTED BY */}
+      {/* PARTNERS */}
       {partners.length > 0 ? (
-        <section className="pb-20">
+        <section className="section-pad bg-muted/40">
           <div className="container-adey">
-            <div className="text-center text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground">
-              Trusted by partners across Ethiopia
+            <div className="mx-auto max-w-2xl text-center">
+              <div className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Our Partners</div>
+              <h2 className="mt-3 text-3xl md:text-4xl">Working together for every child.</h2>
+              <p className="mt-3 text-body">
+                We collaborate with government bureaus, health institutions, and community organizations
+                across Ethiopia to expand what's possible for children with Cerebral Palsy.
+              </p>
             </div>
-            <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-6">
+            <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {partners.map((p) => {
-                const inner = p.logo_url ? (
-                  <img src={p.logo_url} alt={p.name} className="max-h-10 max-w-[80%] object-contain" loading="lazy" />
-                ) : (
-                  <span className="px-2 text-center text-sm font-semibold text-muted-foreground">{p.name}</span>
+                const card = (
+                  <>
+                    <div className="flex h-20 items-center justify-center">
+                      {p.logo_url ? (
+                        <img src={p.logo_url} alt={p.name} className="max-h-16 max-w-[70%] object-contain" loading="lazy" />
+                      ) : (
+                        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary-soft font-heading text-lg font-bold text-primary">
+                          {p.name.split(" ").map((w) => w[0]).slice(0, 2).join("")}
+                        </div>
+                      )}
+                    </div>
+                    <div className="mt-4 text-center font-heading text-base font-bold text-ink">{p.name}</div>
+                    {p.website_url ? (
+                      <div className="mt-1 text-center text-xs font-semibold text-primary opacity-0 transition-opacity group-hover:opacity-100">
+                        Visit website →
+                      </div>
+                    ) : null}
+                  </>
                 );
                 return (
-                  <div key={p.id} className="flex h-16 items-center justify-center rounded-xl border border-border bg-card">
+                  <div
+                    key={p.id}
+                    className="group rounded-2xl border border-border bg-card p-6 shadow-[var(--shadow-soft)] transition duration-300 hover:-translate-y-1 hover:shadow-[var(--shadow-card)]"
+                  >
                     {p.website_url ? (
-                      <a href={p.website_url} target="_blank" rel="noreferrer" title={p.name} className="flex h-full w-full items-center justify-center">
-                        {inner}
+                      <a href={p.website_url} target="_blank" rel="noreferrer" title={p.name} className="block">
+                        {card}
                       </a>
-                    ) : inner}
+                    ) : card}
                   </div>
                 );
               })}

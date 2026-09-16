@@ -755,3 +755,13 @@ begin
 end; $$;
 revoke execute on function public.next_album_code() from public, anon;
 grant execute on function public.next_album_code() to authenticated;
+
+-- Programs content + contact person / detailed address
+alter table public.site_settings
+  add column if not exists programs jsonb not null default '[]'::jsonb,
+  add column if not exists contact_person_name text,
+  add column if not exists contact_person_title text,
+  add column if not exists contact_person_phone text,
+  add column if not exists contact_person_email text,
+  add column if not exists address_subcity text,
+  add column if not exists address_woreda text;

@@ -75,6 +75,14 @@ export type SiteSettings = {
   strategic_goals: { title: string; points: string[] }[];
   policy_documents: { title: string; url: string }[];
   map_embed_url: string | null;
+
+  programs: { title: string; body: string }[];
+  contact_person_name: string | null;
+  contact_person_title: string | null;
+  contact_person_phone: string | null;
+  contact_person_email: string | null;
+  address_subcity: string | null;
+  address_woreda: string | null;
 };
 
 /**
@@ -159,6 +167,14 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   strategic_goals: [],
   policy_documents: [],
   map_embed_url: null,
+
+  programs: [],
+  contact_person_name: null,
+  contact_person_title: null,
+  contact_person_phone: null,
+  contact_person_email: null,
+  address_subcity: null,
+  address_woreda: null,
 };
 
 export async function getSiteSettings(): Promise<SiteSettings> {

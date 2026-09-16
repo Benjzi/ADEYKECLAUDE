@@ -105,6 +105,38 @@ function Contact() {
       <section className="section-pad">
         <div className="container-adey grid gap-10 md:grid-cols-2">
           <div className="space-y-4">
+            <div className="rounded-2xl border border-border bg-card p-5">
+              <div className="text-xs font-bold uppercase tracking-wider text-primary">Organization details</div>
+              <dl className="mt-3 space-y-2 text-sm">
+                <div className="flex gap-2"><dt className="w-28 shrink-0 text-muted-foreground">Organization</dt><dd className="font-medium text-ink">{settings.org_name}</dd></div>
+                {settings.address_subcity ? <div className="flex gap-2"><dt className="w-28 shrink-0 text-muted-foreground">Sub City</dt><dd className="text-body">{settings.address_subcity}</dd></div> : null}
+                {settings.address_woreda ? <div className="flex gap-2"><dt className="w-28 shrink-0 text-muted-foreground">Woreda / Area</dt><dd className="text-body">{settings.address_woreda}</dd></div> : null}
+                <div className="flex gap-2"><dt className="w-28 shrink-0 text-muted-foreground">City</dt><dd className="text-body">Addis Ababa, Ethiopia</dd></div>
+                {settings.phone_primary ? <div className="flex gap-2"><dt className="w-28 shrink-0 text-muted-foreground">Telephone</dt><dd className="text-body">{[settings.phone_primary, settings.phone_secondary].filter(Boolean).join(" · ")}</dd></div> : null}
+                {settings.email ? <div className="flex gap-2"><dt className="w-28 shrink-0 text-muted-foreground">Email</dt><dd className="text-body">{settings.email}</dd></div> : null}
+              </dl>
+            </div>
+
+            {settings.contact_person_name ? (
+              <div className="rounded-2xl border border-primary/20 bg-primary-soft/40 p-5">
+                <div className="text-xs font-bold uppercase tracking-wider text-primary">Contact person</div>
+                <div className="mt-2 font-heading text-lg font-bold text-ink">{settings.contact_person_name}</div>
+                {settings.contact_person_title ? <div className="text-sm font-semibold text-primary">{settings.contact_person_title}</div> : null}
+                <div className="mt-3 space-y-1 text-sm">
+                  {settings.contact_person_phone ? (
+                    <a href={`tel:${settings.contact_person_phone}`} className="flex items-center gap-2 text-body hover:text-primary">
+                      <Phone className="h-3.5 w-3.5" /> {settings.contact_person_phone}
+                    </a>
+                  ) : null}
+                  {settings.contact_person_email ? (
+                    <a href={`mailto:${settings.contact_person_email}`} className="flex items-center gap-2 text-body hover:text-primary">
+                      <Mail className="h-3.5 w-3.5" /> {settings.contact_person_email}
+                    </a>
+                  ) : null}
+                </div>
+              </div>
+            ) : null}
+
             {contactRows.map((row) => {
               const content = (
                 <>
