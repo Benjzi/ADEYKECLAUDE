@@ -138,6 +138,60 @@ function Home() {
         </div>
       </section>
 
+      {/* PARTNERS */}
+      {partners.length > 0 ? (
+        <section className="section-pad bg-muted/40">
+          <div className="container-adey">
+            <div className="mx-auto max-w-2xl text-center">
+              <div className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Our Partners</div>
+              <h2 className="mt-3 text-3xl md:text-4xl">Working together for every child.</h2>
+              <p className="mt-3 text-body">
+                We collaborate with government bureaus, health institutions, and community organizations
+                across Ethiopia to expand what's possible for children with Cerebral Palsy.
+              </p>
+              <Link to="/partners" className="mt-5 inline-flex items-center gap-1.5 text-sm font-bold text-primary hover:underline">
+                View all partners <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+            <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {partners.map((p) => {
+                const card = (
+                  <>
+                    <div className="flex h-20 items-center justify-center">
+                      {p.logo_url ? (
+                        <img src={p.logo_url} alt={p.name} className="max-h-16 max-w-[70%] object-contain" loading="lazy" />
+                      ) : (
+                        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary-soft font-heading text-lg font-bold text-primary">
+                          {p.name.split(" ").map((w) => w[0]).slice(0, 2).join("")}
+                        </div>
+                      )}
+                    </div>
+                    <div className="mt-4 text-center font-heading text-base font-bold text-ink">{p.name}</div>
+                    {p.website_url ? (
+                      <div className="mt-1 text-center text-xs font-semibold text-primary opacity-0 transition-opacity group-hover:opacity-100">
+                        Visit website →
+                      </div>
+                    ) : null}
+                  </>
+                );
+                return (
+                  <div
+                    key={p.id}
+                    className="group rounded-2xl border border-border bg-card p-6 shadow-[var(--shadow-soft)] transition duration-300 hover:-translate-y-1 hover:shadow-[var(--shadow-card)]"
+                  >
+                    {p.website_url ? (
+                      <a href={p.website_url} target="_blank" rel="noreferrer" title={p.name} className="block">
+                        {card}
+                      </a>
+                    ) : card}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      ) : null}
+
       {/* PROGRAMS */}
       <section className="bg-primary-soft/40 section-pad">
         <div className="container-adey">
@@ -310,59 +364,7 @@ function Home() {
         </div>
       </section>
 
-      {/* PARTNERS */}
-      {partners.length > 0 ? (
-        <section className="section-pad bg-muted/40">
-          <div className="container-adey">
-            <div className="mx-auto max-w-2xl text-center">
-              <div className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Our Partners</div>
-              <h2 className="mt-3 text-3xl md:text-4xl">Working together for every child.</h2>
-              <p className="mt-3 text-body">
-                We collaborate with government bureaus, health institutions, and community organizations
-                across Ethiopia to expand what's possible for children with Cerebral Palsy.
-              </p>
-              <Link to="/partners" className="mt-5 inline-flex items-center gap-1.5 text-sm font-bold text-primary hover:underline">
-                View all partners <ArrowRight className="h-4 w-4" />
-              </Link>
-            </div>
-            <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {partners.map((p) => {
-                const card = (
-                  <>
-                    <div className="flex h-20 items-center justify-center">
-                      {p.logo_url ? (
-                        <img src={p.logo_url} alt={p.name} className="max-h-16 max-w-[70%] object-contain" loading="lazy" />
-                      ) : (
-                        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary-soft font-heading text-lg font-bold text-primary">
-                          {p.name.split(" ").map((w) => w[0]).slice(0, 2).join("")}
-                        </div>
-                      )}
-                    </div>
-                    <div className="mt-4 text-center font-heading text-base font-bold text-ink">{p.name}</div>
-                    {p.website_url ? (
-                      <div className="mt-1 text-center text-xs font-semibold text-primary opacity-0 transition-opacity group-hover:opacity-100">
-                        Visit website →
-                      </div>
-                    ) : null}
-                  </>
-                );
-                return (
-                  <div
-                    key={p.id}
-                    className="group rounded-2xl border border-border bg-card p-6 shadow-[var(--shadow-soft)] transition duration-300 hover:-translate-y-1 hover:shadow-[var(--shadow-card)]"
-                  >
-                    {p.website_url ? (
-                      <a href={p.website_url} target="_blank" rel="noreferrer" title={p.name} className="block">
-                        {card}
-                      </a>
-                    ) : card}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </section>
-      ) : null}
+
     </SiteLayout>
   );
 }

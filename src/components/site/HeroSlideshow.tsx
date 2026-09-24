@@ -4,6 +4,21 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 export function HeroSlideshow({ images, altPrefix }: { images: string[]; altPrefix: string }) {
   const [index, setIndex] = useState(0);
   const slides = images.length > 0 ? images : [];
+  // Only the slides a visitor will actually see soon get an <img> tag at
+  // all — mounting every slide up front (even with loading="lazy") made
+  // the browser fetch all of them simultaneously, since they're all
+  // stacked in the same viewport-sized box. This keeps it to the current
+  // slide plus its immediate neighbors, growing as the user reaches more.
+  const [mounted, setMounted] = useState<Set<number>>(() => new Set([0]));
+
+  useEffect(() => {
+    setMounted((prev) => {
+      const next = new Set(prev);
+      next.add(index);
+      next.add((index + 1) % slides.length);
+      return next;
+    });
+  }, [index, slides.length]);
 
   useEffect(() => {
     if (slides.length <= 1) return;
@@ -16,15 +31,17 @@ export function HeroSlideshow({ images, altPrefix }: { images: string[]; altPref
   return (
     <div className="relative h-full w-full overflow-hidden">
       {slides.map((src, i) => (
-        <img
-          key={src + i}
-          src={src}
-          alt={`${altPrefix} ${i + 1}`}
-          loading={i === 0 ? "eager" : "lazy"}
-          className={`absolute inset-0 h-full w-full object-cover transition-all duration-[1400ms] ease-out ${
-            i === index ? "translate-x-0 opacity-100 scale-105" : i < index ? "-translate-x-6 opacity-0" : "translate-x-6 opacity-0"
-          }`}
-        />
+        mounted.has(i) ? (
+          <img
+            key={src + i}
+            src={src}
+            alt={`${altPrefix} ${i + 1}`}
+            loading={i === 0 ? "eager" : "lazy"}
+            className={`absolute inset-0 h-full w-full object-cover transition-all duration-[1400ms] ease-out ${
+              i === index ? "translate-x-0 opacity-100 scale-105" : i < index ? "-translate-x-6 opacity-0" : "translate-x-6 opacity-0"
+            }`}
+          />
+        ) : null
       ))}
       {slides.length > 1 ? (
         <>

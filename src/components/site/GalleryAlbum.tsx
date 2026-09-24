@@ -129,17 +129,21 @@ export function PhotoLightbox({
   items: GalleryItemPublic[];
   index: number;
   onClose: () => void;
-  onIndex: (i: number | ((v: number | null) => number | null)) => void;
+  onIndex: (i: number) => void;
 }) {
   const item = items[index];
+  const canPrev = index > 0;
+  const canNext = index < items.length - 1;
+
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      if (e.key === "ArrowRight") onIndex((i) => (i !== null && i < items.length - 1 ? i + 1 : i));
-      if (e.key === "ArrowLeft") onIndex((i) => (i !== null && i > 0 ? i - 1 : i));
+      if (e.key === "ArrowRight" && index < items.length - 1) onIndex(index + 1);
+      if (e.key === "ArrowLeft" && index > 0) onIndex(index - 1);
+      if (e.key === "Escape") onClose();
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [items.length, onIndex]);
+  }, [index, items.length, onIndex, onClose]);
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/90 p-4 animate-fade-in" onClick={onClose}>
@@ -149,15 +153,17 @@ export function PhotoLightbox({
         aria-label="Close"
       ><X className="h-6 w-6" /></button>
       <button
-        className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-white/10 p-3 text-white hover:bg-white/20 disabled:opacity-30"
-        disabled={index === 0}
-        onClick={(e) => { e.stopPropagation(); onIndex((i) => (i !== null && i > 0 ? i - 1 : i)); }}
+        type="button"
+        className="absolute left-4 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/10 p-3 text-white hover:bg-white/20 disabled:pointer-events-none disabled:opacity-30"
+        disabled={!canPrev}
+        onClick={(e) => { e.stopPropagation(); if (canPrev) onIndex(index - 1); }}
         aria-label="Previous"
       ><ChevronLeft className="h-6 w-6" /></button>
       <button
-        className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-white/10 p-3 text-white hover:bg-white/20 disabled:opacity-30"
-        disabled={index === items.length - 1}
-        onClick={(e) => { e.stopPropagation(); onIndex((i) => (i !== null && i < items.length - 1 ? i + 1 : i)); }}
+        type="button"
+        className="absolute right-4 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/10 p-3 text-white hover:bg-white/20 disabled:pointer-events-none disabled:opacity-30"
+        disabled={!canNext}
+        onClick={(e) => { e.stopPropagation(); if (canNext) onIndex(index + 1); }}
         aria-label="Next"
       ><ChevronRight className="h-6 w-6" /></button>
       <figure className="max-h-full max-w-5xl" onClick={(e) => e.stopPropagation()}>
