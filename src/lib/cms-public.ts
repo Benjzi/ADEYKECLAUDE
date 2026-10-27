@@ -106,8 +106,9 @@ export async function getPublishedEvent({ data }: { data: { slug: string } }): P
 }
 
 export async function listLinkedGalleryAlbums(filter: { eventId?: string; newsId?: string }): Promise<{ categories: GalleryCategoryPublic[]; items: GalleryItemPublic[] }> {
+  if (!filter.eventId && !filter.newsId) return { categories: [], items: [] };
   let q = supabase.from("gallery_categories").select("id, name, slug, description, cover_image_url, event_id, news_id").order("sort_order", { ascending: true });
-  q = filter.eventId ? q.eq("event_id", filter.eventId) : q.eq("news_id", filter.newsId);
+  q = filter.eventId ? q.eq("event_id", filter.eventId) : q.eq("news_id", filter.newsId as string);
   const c = await q;
   if (c.error) throw new Error(c.error.message);
   const catIds = (c.data ?? []).map((row: any) => row.id);

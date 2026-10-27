@@ -12,6 +12,15 @@ const homeNewsQuery = queryOptions({ queryKey: ["public", "news", "home"], query
 const homeEventsQuery = queryOptions({ queryKey: ["public", "events", "home"], queryFn: () => listPublishedEvents() });
 
 export const Route = createFileRoute("/")({
+  loader: async ({ context }) => {
+    const [, , , settings] = await Promise.all([
+      context.queryClient.ensureQueryData(partnersQuery),
+      context.queryClient.ensureQueryData(homeNewsQuery),
+      context.queryClient.ensureQueryData(homeEventsQuery),
+      context.queryClient.ensureQueryData(siteSettingsQuery),
+    ]);
+    return { settings };
+  },
   head: ({ loaderData }) => {
     const s = loaderData?.settings;
     const title = s?.seo_title || "Adey CP Humanitarian Association — Every Child Deserves to Thrive";
@@ -25,15 +34,6 @@ export const Route = createFileRoute("/")({
         { property: "og:description", content: description },
       ],
     };
-  },
-  loader: async ({ context }) => {
-    const [, , , settings] = await Promise.all([
-      context.queryClient.ensureQueryData(partnersQuery),
-      context.queryClient.ensureQueryData(homeNewsQuery),
-      context.queryClient.ensureQueryData(homeEventsQuery),
-      context.queryClient.ensureQueryData(siteSettingsQuery),
-    ]);
-    return { settings };
   },
   component: Home,
 });
