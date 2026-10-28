@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
-import { HandHeart, HeartHandshake, GraduationCap, Users, Stethoscope, Sparkles, ArrowRight, MapPin, PlayCircle } from "lucide-react";
+import { HandHeart, HeartHandshake, GraduationCap, Users, Stethoscope, ArrowRight, MapPin, PlayCircle } from "lucide-react";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { HeroSlideshow } from "@/components/site/HeroSlideshow";
 import { FeaturedVideos } from "@/components/site/FeaturedVideos";
@@ -77,7 +77,6 @@ function Home() {
 
         <div className="container-adey relative flex min-h-[640px] flex-col justify-end pb-28 pt-32 md:min-h-[720px] md:pb-32">
           <div className="mb-4 inline-flex w-fit items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 backdrop-blur">
-            <Sparkles className="h-4 w-4 text-accent" />
             <span className="font-heading text-xs font-bold uppercase tracking-wider text-white sm:text-sm sm:tracking-widest">{settings.org_name}</span>
           </div>
           <h1 className="max-w-3xl text-4xl font-bold leading-tight text-white drop-shadow-lg md:text-7xl">
