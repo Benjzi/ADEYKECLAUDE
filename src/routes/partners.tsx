@@ -5,6 +5,7 @@ import { SiteLayout } from "@/components/site/SiteLayout";
 import { PageHero, EmptyState } from "@/components/site/PageHero";
 import { listPublicPartners } from "@/lib/cms-public";
 import { useSiteSettings } from "@/lib/site-settings";
+import { MediaImage } from "@/components/site/MediaImage";
 
 const partnersQuery = queryOptions({ queryKey: ["public", "partners"], queryFn: () => listPublicPartners() });
 
@@ -51,7 +52,7 @@ function Partners() {
                   <>
                     <div className="flex h-24 items-center justify-center">
                       {p.logo_url ? (
-                        <img src={p.logo_url} alt={p.name} className="max-h-20 max-w-[75%] object-contain" loading="lazy" />
+                        <MediaImage src={p.logo_url} alt={p.name} className="max-h-20 max-w-[75%] object-contain" />
                       ) : (
                         <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary-soft font-heading text-xl font-bold text-primary">
                           {p.name.split(" ").map((w) => w[0]).slice(0, 2).join("")}

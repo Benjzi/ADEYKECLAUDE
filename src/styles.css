@@ -55,6 +55,9 @@
   --color-ring: var(--ring);
   --color-ring-offset-background: var(--background);
   --color-ink: var(--ink);
+  --color-brand: var(--brand);
+  --color-brand-deep: var(--brand-deep);
+  --color-footer: var(--footer);
   --color-body: var(--body);
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
@@ -78,6 +81,15 @@
 
   --ink: oklch(0.24 0.05 265);         /* #1a2340 */
   --body: oklch(0.4 0.04 265);          /* #3d4a63 */
+
+  /* Fixed-dark brand surfaces for text-on-colour areas (heroes, CTA bands,
+     footer). They stay dark in BOTH themes so white text is always legible,
+     unlike --primary which flips to a light blue in dark mode. */
+  --brand: var(--primary);
+  --brand-deep: var(--primary-dark);
+  --footer: oklch(0.24 0.05 265);
+
+  color-scheme: light;
 
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.24 0.05 265);
@@ -117,6 +129,11 @@
 }
 
 .dark {
+  color-scheme: dark;
+  --brand: oklch(0.34 0.09 255);
+  --brand-deep: oklch(0.25 0.07 255);
+  --footer: oklch(0.14 0.03 265);
+
   --background: oklch(0.18 0.03 265);
   --foreground: oklch(0.98 0.003 260);
   --ink: oklch(0.98 0.003 260);
@@ -157,6 +174,11 @@
   --shadow-lifted: 0 20px 50px oklch(0 0 0 / 0.45), 0 0 0 1px oklch(1 0 0 / 0.05);
 }
 
+:root[data-palette="sunshine"]:not(.dark) {
+  --background: hsl(40 60% 98%);
+  --muted: hsl(40 45% 95%);
+}
+
 @layer base {
   * { border-color: var(--color-border); }
   html { scroll-behavior: smooth; }
@@ -166,6 +188,18 @@
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     line-height: 1.65;
+  }
+  :where(a, button, [role="button"], input, select, textarea, summary):focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
   }
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-heading);
@@ -181,27 +215,40 @@
   max-width: 1200px;
   margin-inline: auto;
   padding-inline: 1.25rem;
+  @media (min-width: 640px) { padding-inline: 1.5rem; }
+  @media (min-width: 1024px) { padding-inline: 2rem; }
 }
+
+/*
+ * Button system. One shape, three variants, three sizes.
+ *   variants: btn-primary | btn-accent | btn-outline
+ *   sizes:    (default 44px) | btn-sm (36px, header/utility) | btn-lg (52px, hero CTAs)
+ * Sizes only set CSS variables, so a size class never fights a variant class.
+ * Icon-only buttons: btn-icon (36px circle).
+ */
+@utility btn-sm { --btn-h: 2.25rem; --btn-px: 1rem; --btn-fs: 0.8125rem; }
+@utility btn-lg { --btn-h: 3.25rem; --btn-px: 2rem; --btn-fs: 1rem; }
 
 @utility btn-primary {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
+  min-height: var(--btn-h, 2.75rem);
+  padding: 0 var(--btn-px, 1.5rem);
+  border: 1px solid transparent;
+  border-radius: 9999px;
   background: var(--color-primary);
   color: var(--color-primary-foreground);
-  padding: 0.75rem 1.75rem;
-  border-radius: 9999px;
   font-family: var(--font-heading);
   font-weight: 700;
-  font-size: 0.95rem;
-  box-shadow: 0 4px 16px oklch(0.32 0.09 255 / 0.35);
-  transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
-  &:hover {
-    background: var(--color-primary-dark);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px oklch(0.32 0.09 255 / 0.45);
-  }
+  font-size: var(--btn-fs, 0.9rem);
+  line-height: 1;
+  white-space: nowrap;
+  box-shadow: var(--shadow-soft);
+  transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+  &:hover { background: var(--color-primary-dark); box-shadow: var(--shadow-card); }
+  &:active { transform: scale(0.98); }
 }
 
 @utility btn-accent {
@@ -209,20 +256,21 @@
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
+  min-height: var(--btn-h, 2.75rem);
+  padding: 0 var(--btn-px, 1.5rem);
+  border: 1px solid transparent;
+  border-radius: 9999px;
   background: var(--color-accent);
   color: var(--color-accent-foreground);
-  padding: 0.75rem 1.75rem;
-  border-radius: 9999px;
   font-family: var(--font-heading);
   font-weight: 700;
-  font-size: 0.95rem;
-  box-shadow: 0 4px 16px oklch(0.83 0.15 90 / 0.4);
-  transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
-  &:hover {
-    background: var(--color-accent-dark);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px oklch(0.83 0.15 90 / 0.5);
-  }
+  font-size: var(--btn-fs, 0.9rem);
+  line-height: 1;
+  white-space: nowrap;
+  box-shadow: var(--shadow-soft);
+  transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+  &:hover { background: var(--color-accent-dark); box-shadow: var(--shadow-card); }
+  &:active { transform: scale(0.98); }
 }
 
 @utility btn-outline {
@@ -230,23 +278,72 @@
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
+  min-height: var(--btn-h, 2.75rem);
+  padding: 0 var(--btn-px, 1.5rem);
+  border: 1.5px solid currentColor;
+  border-radius: 9999px;
   background: transparent;
   color: var(--color-primary);
-  padding: 0.7rem 1.7rem;
-  border: 2px solid currentColor;
-  border-radius: 9999px;
   font-family: var(--font-heading);
   font-weight: 700;
-  font-size: 0.95rem;
-  transition: background 0.2s ease, color 0.2s ease;
-  &:hover {
-    background: var(--color-primary);
-    color: var(--color-primary-foreground);
-  }
+  font-size: var(--btn-fs, 0.9rem);
+  line-height: 1;
+  white-space: nowrap;
+  transition: background-color 0.2s ease, color 0.2s ease, transform 0.15s ease;
+  &:hover { background: var(--color-primary); color: var(--color-primary-foreground); border-color: var(--color-primary); }
+  &:active { transform: scale(0.98); }
+}
+
+/* Outline button for use on dark photo/brand surfaces (heroes, CTA bands). */
+@utility btn-outline-light {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: var(--btn-h, 2.75rem);
+  padding: 0 var(--btn-px, 1.5rem);
+  border: 1.5px solid oklch(1 0 0 / 0.5);
+  border-radius: 9999px;
+  background: transparent;
+  color: #fff;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: var(--btn-fs, 0.9rem);
+  line-height: 1;
+  white-space: nowrap;
+  transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+  &:hover { background: oklch(1 0 0 / 0.12); border-color: oklch(1 0 0 / 0.8); }
+  &:active { transform: scale(0.98); }
+}
+
+@utility btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 1px solid var(--color-border);
+  border-radius: 9999px;
+  background: color-mix(in oklab, var(--color-card) 70%, transparent);
+  color: var(--color-body);
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  &:hover { background: var(--color-primary-soft); color: var(--color-primary); }
 }
 
 @utility section-pad {
-  padding-block: 5rem;
+  padding-block: 3.5rem;
+  @media (min-width: 768px) { padding-block: 5rem; }
+}
+
+/* Images: stay invisible until fully downloaded so a half-loaded image is
+   never painted in horizontal bands (see MediaImage.tsx). No animation here
+   on purpose — a reveal effect would not fix the cause, and animating
+   opacity would clash with components that fade/slide their own images. */
+.media-img[data-loaded="false"] { opacity: 0; }
+
+/* Short, restrained cross-fade when the theme is switched. */
+html.theme-switching, html.theme-switching *, html.theme-switching *::before, html.theme-switching *::after {
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, fill 0.2s ease, stroke 0.2s ease !important;
 }
 
 @keyframes loading-bar {

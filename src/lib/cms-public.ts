@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import { resolveField } from "./media-url";
+import { resolveField, IMG } from "./media-url";
 
 export type NewsListItem = {
   id: string;
@@ -60,7 +60,7 @@ export async function listPublishedNews(): Promise<NewsListItem[]> {
     .lte("published_at", nowIso())
     .order("published_at", { ascending: false });
   if (error) throw new Error(error.message);
-  return resolveField((data ?? []) as NewsListItem[], "cover_image_url");
+  return resolveField((data ?? []) as NewsListItem[], "cover_image_url", IMG.card);
 }
 
 export async function getPublishedNews({ data }: { data: { slug: string } }): Promise<NewsArticle | null> {
@@ -87,7 +87,7 @@ export async function listPublishedEvents(): Promise<EventListItem[]> {
     .lte("published_at", nowIso())
     .order("starts_at", { ascending: true });
   if (error) throw new Error(error.message);
-  return resolveField((data ?? []) as EventListItem[], "cover_image_url");
+  return resolveField((data ?? []) as EventListItem[], "cover_image_url", IMG.card);
 }
 
 export async function getPublishedEvent({ data }: { data: { slug: string } }): Promise<EventDetail | null> {
@@ -121,8 +121,8 @@ export async function listLinkedGalleryAlbums(filter: { eventId?: string; newsId
     .order("sort_order", { ascending: true })
     .order("created_at", { ascending: false });
   if (i.error) throw new Error(i.error.message);
-  const items = await resolveField((i.data ?? []) as GalleryItemPublic[], "image_url");
-  const categories = await resolveField((c.data ?? []) as GalleryCategoryPublic[], "cover_image_url");
+  const items = await resolveField((i.data ?? []) as GalleryItemPublic[], "image_url", IMG.full);
+  const categories = await resolveField((c.data ?? []) as GalleryCategoryPublic[], "cover_image_url", IMG.card);
   return { categories, items };
 }
 export const listEventGalleryAlbums = (eventId: string) => listLinkedGalleryAlbums({ eventId });
@@ -140,8 +140,8 @@ export async function listPublicGallery(): Promise<{ categories: GalleryCategory
   ]);
   if (c.error) throw new Error(c.error.message);
   if (i.error) throw new Error(i.error.message);
-  const items = await resolveField((i.data ?? []) as GalleryItemPublic[], "image_url");
-  const categories = await resolveField((c.data ?? []) as GalleryCategoryPublic[], "cover_image_url");
+  const items = await resolveField((i.data ?? []) as GalleryItemPublic[], "image_url", IMG.full);
+  const categories = await resolveField((c.data ?? []) as GalleryCategoryPublic[], "cover_image_url", IMG.card);
   return { categories, items };
 }
 
@@ -152,7 +152,7 @@ export async function listPublicStaff(): Promise<StaffPublic[]> {
     .eq("status", "published")
     .order("sort_order", { ascending: true });
   if (error) throw new Error(error.message);
-  return resolveField((data ?? []) as StaffPublic[], "photo_url");
+  return resolveField((data ?? []) as StaffPublic[], "photo_url", IMG.avatar);
 }
 
 export async function listPublicPartners(): Promise<PartnerPublic[]> {
@@ -162,7 +162,7 @@ export async function listPublicPartners(): Promise<PartnerPublic[]> {
     .eq("status", "published")
     .order("sort_order", { ascending: true });
   if (error) throw new Error(error.message);
-  return resolveField((data ?? []) as PartnerPublic[], "logo_url");
+  return resolveField((data ?? []) as PartnerPublic[], "logo_url", IMG.logo);
 }
 
 // -------- Contact --------

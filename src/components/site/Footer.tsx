@@ -25,7 +25,7 @@ export function Footer() {
   ].filter((x) => x.href);
 
   return (
-    <footer className="mt-24 bg-ink text-white/85">
+    <footer className="mt-24 bg-footer text-white/85">
       <div className="h-[3px] w-full bg-gradient-to-r from-primary via-accent to-primary" />
       <div className="container-adey grid gap-10 py-16 md:grid-cols-4">
         <div>

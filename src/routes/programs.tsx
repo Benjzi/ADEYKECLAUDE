@@ -111,7 +111,7 @@ function Programs() {
               </Link>
             </div>
 
-            <div className="rounded-2xl bg-gradient-to-br from-[#0b3d68] to-primary-dark p-6 text-white shadow-[var(--shadow-card)]">
+            <div className="rounded-2xl bg-gradient-to-br from-[#0b3d68] to-brand-deep p-6 text-white shadow-[var(--shadow-card)]">
               <HandHeart className="h-7 w-7 text-accent" />
               <h3 className="mt-3 font-heading text-lg font-bold">Support a program</h3>
               <p className="mt-1 text-sm text-white/80">Your gift funds therapy sessions, learning materials, and assistive devices.</p>

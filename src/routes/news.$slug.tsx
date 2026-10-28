@@ -8,6 +8,7 @@ import { SiteLayout } from "@/components/site/SiteLayout";
 import { getPublishedNews, listNewsGalleryAlbums } from "@/lib/cms-public";
 import { AlbumCard, AlbumViewer, type Album } from "@/components/site/GalleryAlbum";
 import { useQuery } from "@tanstack/react-query";
+import { MediaImage } from "@/components/site/MediaImage";
 
 const newsQuery = (slug: string) =>
   queryOptions({
@@ -114,7 +115,7 @@ function NewsDetail() {
           </div>
         </header>
         {article.cover_image_url ? (
-          <img
+          <MediaImage priority
             src={article.cover_image_url}
             alt=""
             className="mt-8 aspect-[16/9] w-full rounded-3xl object-cover shadow-[var(--shadow-lifted)]"

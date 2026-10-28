@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MediaUpload } from "@/components/admin/MediaUpload";
 import { useMembershipCount } from "@/lib/membership";
@@ -131,7 +132,16 @@ function SettingsAdmin() {
 
   function save() {
     mut.mutate(form, {
-      onSuccess: () => toast.success("Website settings saved — changes are live everywhere."),
+      onSuccess: (res: { bannerSaved?: boolean }) => {
+        if (res?.bannerSaved === false) {
+          toast.warning(
+            "Saved, but the Feature Banner was NOT stored: the database needs the new banner columns. Apply the migration supabase/migrations/20261028000000_feature_banner.sql, then save again.",
+            { duration: 12000 },
+          );
+        } else {
+          toast.success("Website settings saved — changes are live everywhere.");
+        }
+      },
       onError: (e: any) => toast.error(e.message ?? "Could not save settings"),
     });
   }
@@ -153,6 +163,7 @@ function SettingsAdmin() {
       <Tabs defaultValue="slider" className="w-full">
         <TabsList className="flex-wrap">
           <TabsTrigger value="slider">Homepage Slider</TabsTrigger>
+          <TabsTrigger value="banner">Feature Banner</TabsTrigger>
           <TabsTrigger value="org">Organization</TabsTrigger>
           <TabsTrigger value="contact">Contact</TabsTrigger>
           <TabsTrigger value="social">Social Media</TabsTrigger>
@@ -175,6 +186,51 @@ function SettingsAdmin() {
             </p>
           </div>
           <ImageListEditor images={form.hero_slideshow} onChange={(imgs) => set("hero_slideshow", imgs)} max={8} />
+        </TabsContent>
+
+        <TabsContent value="banner" className="mt-6 space-y-5 rounded-2xl border border-border bg-card p-6">
+          <div>
+            <h3 className="font-heading text-lg font-bold text-ink">Homepage Feature Banner</h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Show a blueprint, master plan, announcement or any featured image near the top of the homepage.
+              The banner only appears when it is switched on <strong>and</strong> an image is uploaded — remove the
+              image or switch it off and the whole section disappears with no blank space.
+            </p>
+          </div>
+          <label className="flex items-center justify-between gap-4 rounded-xl border border-border p-4">
+            <div>
+              <div className="font-medium text-ink">Show banner on homepage</div>
+              <div className="text-xs text-muted-foreground">
+                {form.feature_banner_enabled ? "On" : "Off"}
+                {form.feature_banner_enabled && !form.feature_banner_image_url ? " — hidden until you upload an image" : ""}
+              </div>
+            </div>
+            <Switch
+              checked={form.feature_banner_enabled}
+              onCheckedChange={(v) => set("feature_banner_enabled", v)}
+              aria-label="Show banner on homepage"
+            />
+          </label>
+          <Field label="Banner image (wide images work best, e.g. 16:9)">
+            <MediaUpload folder="settings" value={form.feature_banner_image_url} onChange={(url) => set("feature_banner_image_url", url)} />
+          </Field>
+          <Field label="Title (optional — an image-only banner is fine)">
+            <Input
+              value={form.feature_banner_title ?? ""}
+              maxLength={120}
+              onChange={(e) => set("feature_banner_title", e.target.value)}
+              placeholder="e.g. Our New Rehabilitation Centre — Master Plan"
+            />
+          </Field>
+          <Field label="Description (optional)">
+            <Textarea
+              rows={3}
+              maxLength={400}
+              value={form.feature_banner_description ?? ""}
+              onChange={(e) => set("feature_banner_description", e.target.value)}
+            />
+          </Field>
+          <p className="text-xs text-muted-foreground">Remember to press “Save changes” at the top — the banner updates on the homepage right after.</p>
         </TabsContent>
 
         <TabsContent value="org" className="mt-6 space-y-4 rounded-2xl border border-border bg-card p-6">

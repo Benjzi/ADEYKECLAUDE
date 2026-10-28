@@ -11,6 +11,10 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
     <meta name="theme-color" content="#123a5c" />
+    <style>
+      html { background: #fff; }
+      html.dark { background: #12162b; }
+    </style>
     <title>Adey CP Humanitarian Association — Every Child Deserves to Thrive</title>
     <meta name="description" content="Adey CP walks alongside children with Cerebral Palsy and their families across Ethiopia — providing therapy, dignity, community, and a future full of possibility." />
     <meta name="author" content="Adey CP Humanitarian Association" />
@@ -54,7 +58,11 @@
         try {
           var stored = localStorage.getItem("adeycp-dark-mode");
           var dark = stored !== null ? stored === "1" : window.matchMedia("(prefers-color-scheme: dark)").matches;
-          if (dark) document.documentElement.classList.add("dark");
+          var root = document.documentElement;
+          if (dark) root.classList.add("dark");
+          root.style.colorScheme = dark ? "dark" : "light";
+          var m = document.querySelector('meta[name="theme-color"]');
+          if (m) m.setAttribute("content", dark ? "#12162b" : "#123a5c");
         } catch (e) {}
       })();
     </script>
@@ -64,9 +72,9 @@
         never blank-white while the app bundle downloads. React replaces
         this the moment it mounts.
       -->
-      <div style="display:flex;min-height:100vh;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:#fff;font-family:system-ui,sans-serif;">
+      <div style="display:flex;min-height:100vh;flex-direction:column;align-items:center;justify-content:center;gap:16px;font-family:system-ui,sans-serif;">
         <img src="/favicon-48x48.png" alt="" width="56" height="56" style="border-radius:9999px;animation:adey-pulse 1.4s ease-in-out infinite;" />
-        <div style="height:4px;width:160px;overflow:hidden;border-radius:9999px;background:#e5e7eb;">
+        <div style="height:4px;width:160px;overflow:hidden;border-radius:9999px;background:rgba(127,127,127,.25);">
           <div style="height:100%;width:33%;border-radius:9999px;background:#2b7fbf;animation:adey-bar 1.1s ease-in-out infinite;"></div>
         </div>
       </div>

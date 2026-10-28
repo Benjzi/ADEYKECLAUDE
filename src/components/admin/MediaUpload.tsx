@@ -3,12 +3,44 @@ import { toast } from "sonner";
 import { Upload, X } from "lucide-react";
 import { uploadMedia } from "@/lib/cms-admin";
 
-async function fileToBase64(file: File): Promise<string> {
-  const buf = await file.arrayBuffer();
+async function fileToBase64(file: Blob): Promise<string> {
+  const bytes = new Uint8Array(await file.arrayBuffer());
   let bin = "";
-  const bytes = new Uint8Array(buf);
-  for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+  const CHUNK = 0x8000;
+  for (let i = 0; i < bytes.length; i += CHUNK) {
+    bin += String.fromCharCode(...bytes.subarray(i, i + CHUNK));
+  }
   return btoa(bin);
+}
+
+const MAX_EDGE = 2000; // px — the site never displays photos larger than this
+const WEBP_QUALITY = 0.82;
+
+/** Downscale + re-encode photos before upload so the stored original is
+ * never a multi-megabyte camera file. Keeps the original untouched for
+ * SVG/GIF (animation/vector) or if re-encoding wouldn't make it smaller.
+ * Fails soft: any error just uploads the original file. */
+async function optimizeImage(file: File): Promise<{ blob: Blob; name: string; type: string }> {
+  const keep = { blob: file as Blob, name: file.name, type: file.type };
+  if (!/^image\/(jpeg|jpg|png|webp)$/i.test(file.type) || typeof createImageBitmap !== "function") return keep;
+  try {
+    const bmp = await createImageBitmap(file);
+    const scale = Math.min(1, MAX_EDGE / Math.max(bmp.width, bmp.height));
+    const w = Math.round(bmp.width * scale);
+    const h = Math.round(bmp.height * scale);
+    const canvas = document.createElement("canvas");
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return keep;
+    ctx.drawImage(bmp, 0, 0, w, h);
+    bmp.close?.();
+    const blob: Blob | null = await new Promise((res) => canvas.toBlob(res, "image/webp", WEBP_QUALITY));
+    if (!blob || blob.type !== "image/webp" || (scale === 1 && blob.size >= file.size)) return keep;
+    return { blob, name: file.name.replace(/\.[^.]+$/, "") + ".webp", type: "image/webp" };
+  } catch {
+    return keep;
+  }
 }
 
 export function MediaUpload({
@@ -33,9 +65,10 @@ export function MediaUpload({
     }
     setBusy(true);
     try {
-      const base64 = await fileToBase64(file);
+      const opt = await optimizeImage(file);
+      const base64 = await fileToBase64(opt.blob);
       const res = await uploadMedia({
-        data: { folder, filename: file.name, contentType: file.type, base64 },
+        data: { folder, filename: opt.name, contentType: opt.type, base64 },
       });
       onChange(res.url);
       toast.success("Image uploaded");

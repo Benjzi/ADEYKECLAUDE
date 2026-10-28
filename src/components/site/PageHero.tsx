@@ -10,7 +10,7 @@ export function PageHero({
   children?: ReactNode;
 }) {
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-primary via-primary to-primary-dark text-white">
+    <section className="relative overflow-hidden bg-gradient-to-br from-brand via-brand to-brand-deep text-white">
       <div className="absolute inset-0 opacity-20 [background-image:radial-gradient(circle_at_20%_20%,white,transparent_40%),radial-gradient(circle_at_80%_60%,var(--color-accent),transparent_45%)]" />
       <div className="container-adey relative py-20 md:py-24">
         {eyebrow ? (

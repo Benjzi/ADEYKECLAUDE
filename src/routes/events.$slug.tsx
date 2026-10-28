@@ -7,6 +7,7 @@ import { CalendarDays, MapPin, ExternalLink } from "lucide-react";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { getPublishedEvent, listEventGalleryAlbums } from "@/lib/cms-public";
 import { AlbumCard, AlbumViewer, type Album } from "@/components/site/GalleryAlbum";
+import { MediaImage } from "@/components/site/MediaImage";
 
 const eventQuery = (slug: string) =>
   queryOptions({
@@ -106,7 +107,7 @@ function EventDetail() {
           ) : null}
         </header>
         {ev.cover_image_url ? (
-          <img src={ev.cover_image_url} alt="" className="mt-8 aspect-[16/9] w-full rounded-2xl object-cover shadow-[var(--shadow-card)]" />
+          <MediaImage priority src={ev.cover_image_url} alt="" className="mt-8 aspect-[16/9] w-full rounded-2xl object-cover shadow-[var(--shadow-card)]" />
         ) : null}
         {ev.description ? (
           <p className="mt-8 max-w-3xl text-lg text-body">{ev.description}</p>

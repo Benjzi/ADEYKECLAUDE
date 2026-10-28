@@ -4,6 +4,7 @@ import { CalendarDays, MapPin } from "lucide-react";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { PageHero, EmptyState } from "@/components/site/PageHero";
 import { listPublishedEvents, type EventListItem } from "@/lib/cms-public";
+import { MediaImage } from "@/components/site/MediaImage";
 
 const eventsQuery = queryOptions({
   queryKey: ["events", "public", "list"],
@@ -87,7 +88,7 @@ function EventCard({ item, muted }: { item: EventListItem; muted?: boolean }) {
     >
       {item.cover_image_url ? (
         <div className="aspect-[16/10] w-full overflow-hidden bg-muted">
-          <img src={item.cover_image_url} alt="" loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+          <MediaImage src={item.cover_image_url} alt="" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
         </div>
       ) : (
         <div className="aspect-[16/10] w-full bg-gradient-to-br from-primary/10 to-accent/20" />
