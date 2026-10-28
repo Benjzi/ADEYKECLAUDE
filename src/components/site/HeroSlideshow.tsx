@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { MediaImage } from "./MediaImage";
 
 export function HeroSlideshow({ images, altPrefix }: { images: string[]; altPrefix: string }) {
   const [index, setIndex] = useState(0);
@@ -30,19 +31,22 @@ export function HeroSlideshow({ images, altPrefix }: { images: string[]; altPref
 
   return (
     <div className="relative h-full w-full overflow-hidden">
-      {slides.map((src, i) => (
+      {slides.map((src, i) =>
         mounted.has(i) ? (
-          <img
-            key={src + i}
+          // Keyed by position, not URL: a refreshed signed URL for the same
+          // slide must update the existing <img>, not unmount/remount it
+          // (which restarted the download and the paint).
+          <MediaImage
+            key={i}
             src={src}
             alt={`${altPrefix} ${i + 1}`}
-            loading={i === 0 ? "eager" : "lazy"}
-            className={`absolute inset-0 h-full w-full object-cover transition-all duration-[1400ms] ease-out ${
+            priority={i === 0}
+            className={`absolute inset-0 h-full w-full object-cover transition-all duration-[1400ms] ease-out motion-reduce:transition-none ${
               i === index ? "translate-x-0 opacity-100 scale-105" : i < index ? "-translate-x-6 opacity-0" : "translate-x-6 opacity-0"
             }`}
           />
-        ) : null
-      ))}
+        ) : null,
+      )}
       {slides.length > 1 ? (
         <>
           <button

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { X, ChevronLeft, ChevronRight, Camera, Images } from "lucide-react";
 import type { GalleryItemPublic } from "@/lib/cms-public";
+import { MediaImage } from "./MediaImage";
 
 export type Album = {
   id: string;
@@ -27,14 +28,13 @@ export function AlbumCard({ album, onOpen, large }: { album: Album; onOpen: () =
         {/* stacked-photo effect when there's more than one image */}
         {total > 1 ? (
           <>
-            <div className="absolute inset-1 -rotate-3 rounded-xl bg-white/60 ring-1 ring-black/5" />
-            <div className="absolute inset-1 rotate-2 rounded-xl bg-white/80 ring-1 ring-black/5" />
+            <div className="absolute inset-1 -rotate-3 rounded-xl bg-card/60 ring-1 ring-border" />
+            <div className="absolute inset-1 rotate-2 rounded-xl bg-card/80 ring-1 ring-border" />
           </>
         ) : null}
-        <img
+        <MediaImage
           src={cover}
           alt={album.name}
-          loading="lazy"
           className="relative h-full w-full rounded-xl object-cover transition-transform duration-500 group-hover:scale-[1.04]"
         />
         <div className="pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-t from-black/65 via-black/0 to-transparent" />
@@ -104,10 +104,9 @@ export function AlbumViewer({ album, onClose }: { album: Album; onClose: () => v
                 onClick={() => setLightbox(idx)}
                 className="group aspect-square overflow-hidden rounded-xl bg-muted"
               >
-                <img
+                <MediaImage
                   src={item.image_url}
                   alt={item.title ?? album.name}
-                  loading="lazy"
                   className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.05]"
                 />
               </button>
@@ -167,7 +166,7 @@ export function PhotoLightbox({
         aria-label="Next"
       ><ChevronRight className="h-6 w-6" /></button>
       <figure className="max-h-full max-w-5xl" onClick={(e) => e.stopPropagation()}>
-        <img src={item.image_url} alt={item.title ?? ""} className="max-h-[80vh] w-auto rounded-lg" />
+        <img src={item.image_url} alt={item.title ?? ""} className="max-h-[80vh] w-auto rounded-lg" decoding="async" />
         {(item.title || item.caption) ? (
           <figcaption className="mt-4 text-center text-white/90">
             {item.title ? <div className="font-heading text-lg font-bold">{item.title}</div> : null}

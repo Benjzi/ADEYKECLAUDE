@@ -81,7 +81,7 @@ function Donate() {
             ) : null}
 
             <div className="overflow-hidden rounded-3xl border border-border bg-card shadow-[var(--shadow-card)]">
-              <div className="bg-gradient-to-br from-primary to-primary-dark p-6 text-white">
+              <div className="bg-gradient-to-br from-brand to-brand-deep p-6 text-white">
                 <Heart className="h-6 w-6 text-accent" />
                 <div className="mt-3 font-heading text-xl font-bold">Where your gift goes</div>
                 <p className="mt-1 text-sm text-white/80">Every donation goes directly toward programs — not overhead.</p>
@@ -128,7 +128,7 @@ function Donate() {
                     onClick={() => { setAmount(v); setCustom(""); }}
                     className={`relative rounded-xl border-2 px-3 py-4 font-heading font-bold transition-all ${
                       amount === v && !custom
-                        ? "border-primary bg-primary text-white shadow-lg scale-[1.03]"
+                        ? "border-primary bg-primary text-primary-foreground shadow-lg scale-[1.03]"
                         : "border-border bg-background text-ink hover:border-primary hover:-translate-y-0.5"
                     }`}
                   >

@@ -302,7 +302,7 @@ export async function savePartner({ data }: { data: any }) {
 export type DonationRow = {
   id: string;
   tx_ref: string;
-  amount: string;
+  amount: number;
   currency: string;
   donor_name: string | null;
   donor_email: string | null;

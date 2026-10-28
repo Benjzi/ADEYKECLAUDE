@@ -148,30 +148,57 @@ export type Database = {
       }
       gallery_categories: {
         Row: {
+          cover_image_url: string | null
           created_at: string
+          description: string | null
+          event_id: string | null
           id: string
           name: string
+          news_id: string | null
           slug: string
           sort_order: number
           updated_at: string
         }
         Insert: {
+          cover_image_url?: string | null
           created_at?: string
+          description?: string | null
+          event_id?: string | null
           id?: string
           name: string
+          news_id?: string | null
           slug: string
           sort_order?: number
           updated_at?: string
         }
         Update: {
+          cover_image_url?: string | null
           created_at?: string
+          description?: string | null
+          event_id?: string | null
           id?: string
           name?: string
+          news_id?: string | null
           slug?: string
           sort_order?: number
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "gallery_categories_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gallery_categories_news_id_fkey"
+            columns: ["news_id"]
+            isOneToOne: false
+            referencedRelation: "news"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       gallery_items: {
         Row: {

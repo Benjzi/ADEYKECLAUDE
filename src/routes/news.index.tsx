@@ -5,6 +5,7 @@ import { Newspaper, ArrowUpRight, Sparkles } from "lucide-react";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { PageHero, EmptyState } from "@/components/site/PageHero";
 import { listPublishedNews, type NewsListItem } from "@/lib/cms-public";
+import { MediaImage } from "@/components/site/MediaImage";
 
 const newsListQuery = queryOptions({
   queryKey: ["news", "public", "list"],
@@ -124,7 +125,7 @@ function FeaturedNews({ item }: { item: NewsListItem }) {
     >
       <div className="relative aspect-[16/10] w-full overflow-hidden bg-muted md:aspect-auto">
         {item.cover_image_url ? (
-          <img src={item.cover_image_url} alt="" loading="lazy" className="h-full w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-110" />
+          <MediaImage src={item.cover_image_url} alt="" className="h-full w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-110" />
         ) : (
           <div className="h-full w-full bg-gradient-to-br from-primary/20 to-accent/20" />
         )}
@@ -169,10 +170,10 @@ function NewsCard({ item }: { item: NewsListItem }) {
     >
       {item.cover_image_url ? (
         <div className="aspect-[16/10] w-full overflow-hidden bg-muted">
-          <img
+          <MediaImage
             src={item.cover_image_url}
             alt=""
-            loading="lazy"
+           
             className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
           />
         </div>

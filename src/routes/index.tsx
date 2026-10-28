@@ -6,12 +6,23 @@ import { HeroSlideshow } from "@/components/site/HeroSlideshow";
 import { FeaturedVideos } from "@/components/site/FeaturedVideos";
 import { listPublicPartners, listPublishedNews, listPublishedEvents } from "@/lib/cms-public";
 import { useSiteSettings, siteSettingsQuery } from "@/lib/site-settings";
+import { MediaImage } from "@/components/site/MediaImage";
+import { FeatureBanner } from "@/components/site/FeatureBanner";
 
 const partnersQuery = queryOptions({ queryKey: ["public", "partners"], queryFn: () => listPublicPartners() });
 const homeNewsQuery = queryOptions({ queryKey: ["public", "news", "home"], queryFn: () => listPublishedNews() });
 const homeEventsQuery = queryOptions({ queryKey: ["public", "events", "home"], queryFn: () => listPublishedEvents() });
 
 export const Route = createFileRoute("/")({
+  loader: async ({ context }) => {
+    const [, , , settings] = await Promise.all([
+      context.queryClient.ensureQueryData(partnersQuery),
+      context.queryClient.ensureQueryData(homeNewsQuery),
+      context.queryClient.ensureQueryData(homeEventsQuery),
+      context.queryClient.ensureQueryData(siteSettingsQuery),
+    ]);
+    return { settings };
+  },
   head: ({ loaderData }) => {
     const s = loaderData?.settings;
     const title = s?.seo_title || "Adey CP Humanitarian Association — Every Child Deserves to Thrive";
@@ -25,15 +36,6 @@ export const Route = createFileRoute("/")({
         { property: "og:description", content: description },
       ],
     };
-  },
-  loader: async ({ context }) => {
-    const [, , , settings] = await Promise.all([
-      context.queryClient.ensureQueryData(partnersQuery),
-      context.queryClient.ensureQueryData(homeNewsQuery),
-      context.queryClient.ensureQueryData(homeEventsQuery),
-      context.queryClient.ensureQueryData(siteSettingsQuery),
-    ]);
-    return { settings };
   },
   component: Home,
 });
@@ -66,7 +68,7 @@ function Home() {
     <SiteLayout>
       {/* HERO — full-bleed photo slideshow background */}
       <section className="relative min-h-[640px] overflow-hidden text-white md:min-h-[720px]">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary-dark via-primary to-primary-dark" />
+        <div className="absolute inset-0 bg-gradient-to-br from-brand-deep via-brand to-brand-deep" />
         <div className="absolute inset-0">
           <HeroSlideshow images={settings.hero_slideshow} altPrefix={settings.org_name} />
         </div>
@@ -76,7 +78,7 @@ function Home() {
         <div className="container-adey relative flex min-h-[640px] flex-col justify-end pb-28 pt-32 md:min-h-[720px] md:pb-32">
           <div className="mb-4 inline-flex w-fit items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 backdrop-blur">
             <Sparkles className="h-4 w-4 text-accent" />
-            <span className="font-heading text-sm font-bold uppercase tracking-widest text-white">{settings.org_name}</span>
+            <span className="font-heading text-xs font-bold uppercase tracking-wider text-white sm:text-sm sm:tracking-widest">{settings.org_name}</span>
           </div>
           <h1 className="max-w-3xl text-4xl font-bold leading-tight text-white drop-shadow-lg md:text-7xl">
             {heroLead} <span className="text-accent">{heroLast}</span>
@@ -85,12 +87,12 @@ function Home() {
             {settings.hero_subtext}
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <Link to="/donate" className="btn-accent">
+            <Link to="/donate" className="btn-accent btn-lg">
               <HandHeart className="h-5 w-5" /> Support Our Mission
             </Link>
             <Link
               to="/about"
-              className="inline-flex items-center gap-2 rounded-full border-2 border-white/50 px-7 py-3 font-heading font-bold text-white transition-colors hover:bg-white/10"
+              className="btn-outline-light btn-lg"
             >
               Who We Are <ArrowRight className="h-4 w-4" />
             </Link>
@@ -109,6 +111,8 @@ function Home() {
         </div>
       </section>
 
+      {/* FEATURE BANNER — admin-managed; renders nothing when off/empty */}
+      <FeatureBanner />
 
       {/* ABOUT */}
       <section id="about" className="section-pad">
@@ -159,7 +163,7 @@ function Home() {
                   <>
                     <div className="flex h-20 items-center justify-center">
                       {p.logo_url ? (
-                        <img src={p.logo_url} alt={p.name} className="max-h-16 max-w-[70%] object-contain" loading="lazy" />
+                        <MediaImage src={p.logo_url} alt={p.name} className="max-h-16 max-w-[70%] object-contain" />
                       ) : (
                         <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary-soft font-heading text-lg font-bold text-primary">
                           {p.name.split(" ").map((w) => w[0]).slice(0, 2).join("")}
@@ -203,7 +207,7 @@ function Home() {
           <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {PROGRAMS.map((p) => (
               <div key={p.title} className="group rounded-2xl border border-border bg-card p-6 shadow-[var(--shadow-soft)] transition-all hover:-translate-y-1 hover:shadow-[var(--shadow-card)]">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary-soft text-primary transition-colors group-hover:bg-primary group-hover:text-white">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary-soft text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
                   <p.icon className="h-6 w-6" />
                 </div>
                 <h3 className="mt-4 text-lg">{p.title}</h3>
@@ -221,7 +225,7 @@ function Home() {
             <div className="grid gap-10 overflow-hidden rounded-3xl border border-border bg-card shadow-[var(--shadow-lifted)] md:grid-cols-[0.9fr_1.1fr]">
               {settings.testimony_photo_url ? (
                 <div className="relative min-h-[280px]">
-                  <img src={settings.testimony_photo_url} alt={settings.testimony_mother_name ?? "A mother from our community"} className="absolute inset-0 h-full w-full object-cover" />
+                  <MediaImage src={settings.testimony_photo_url} alt={settings.testimony_mother_name ?? "A mother from our community"} className="absolute inset-0 h-full w-full object-cover" />
                 </div>
               ) : null}
               <div className="flex flex-col justify-center p-8 md:p-12">
@@ -275,7 +279,7 @@ function Home() {
                 >
                   <div className="relative aspect-[16/10] overflow-hidden bg-muted">
                     {e.cover_image_url ? (
-                      <img src={e.cover_image_url} alt="" loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                      <MediaImage src={e.cover_image_url} alt="" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
                     ) : (
                       <div className="h-full w-full bg-gradient-to-br from-primary/20 to-accent/20" />
                     )}
@@ -326,7 +330,7 @@ function Home() {
                 >
                   <div className="aspect-[16/10] w-full overflow-hidden bg-muted">
                     {n.cover_image_url ? (
-                      <img src={n.cover_image_url} alt="" loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                      <MediaImage src={n.cover_image_url} alt="" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
                     ) : (
                       <div className="h-full w-full bg-gradient-to-br from-primary/10 to-accent/20" />
                     )}
@@ -346,7 +350,7 @@ function Home() {
       {/* CTA */}
       <section className="section-pad">
         <div className="container-adey">
-          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#0b3d68] to-primary-dark p-10 text-center text-white shadow-[var(--shadow-lifted)] md:p-14">
+          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#0b3d68] to-brand-deep p-10 text-center text-white shadow-[var(--shadow-lifted)] md:p-14">
             <div className="absolute -right-16 -top-16 h-64 w-64 rounded-full bg-accent/25 blur-3xl" />
             <h2 className="relative text-3xl text-white md:text-4xl">{settings.cta_heading}</h2>
             <p className="relative mx-auto mt-3 max-w-xl text-white/85">
@@ -356,7 +360,7 @@ function Home() {
               <Link to="/donate" className="btn-accent">
                 <HandHeart className="h-5 w-5" /> Donate Now
               </Link>
-              <Link to="/contact" className="inline-flex items-center gap-2 rounded-full border-2 border-white/40 px-7 py-3 font-heading font-bold text-white/95 hover:bg-white/10">
+              <Link to="/contact" className="btn-outline-light">
                 Partner With Us
               </Link>
             </div>

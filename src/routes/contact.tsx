@@ -62,7 +62,7 @@ function Contact() {
       </PageHero>
 
       {settings.address ? (
-        <section className="bg-ink py-16 text-white">
+        <section className="bg-footer py-16 text-white">
           <div className="container-adey grid gap-0 overflow-hidden rounded-3xl border border-white/10 md:grid-cols-2">
             <div className="bg-black/30 p-8 md:p-10">
               <div className="text-xs font-bold uppercase tracking-[0.2em] text-accent">Find Us</div>

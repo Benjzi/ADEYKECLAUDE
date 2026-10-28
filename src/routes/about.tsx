@@ -6,6 +6,7 @@ import { SiteLayout } from "@/components/site/SiteLayout";
 import { PageHero } from "@/components/site/PageHero";
 import { listPublicStaff } from "@/lib/cms-public";
 import { useSiteSettings } from "@/lib/site-settings";
+import { MediaImage } from "@/components/site/MediaImage";
 
 const staffQuery = queryOptions({
   queryKey: ["public", "staff"],
@@ -174,7 +175,7 @@ function About() {
                     <div className="mt-8 grid gap-5 sm:grid-cols-2">
                       {settings.strategic_goals.map((g, i) => (
                         <div key={g.title} className="overflow-hidden rounded-2xl border border-border bg-card shadow-[var(--shadow-soft)]">
-                          <div className={`px-5 py-3 font-heading font-bold text-white ${i % 2 === 0 ? "bg-primary" : "bg-accent text-accent-foreground"}`}>
+                          <div className={`px-5 py-3 font-heading font-bold text-white ${i % 2 === 0 ? "bg-brand" : "bg-accent text-accent-foreground"}`}>
                             {g.title}
                           </div>
                           {g.points.length > 0 ? (
@@ -231,7 +232,7 @@ function About() {
                   <div className="grid gap-8 overflow-hidden rounded-3xl border border-border bg-card shadow-[var(--shadow-lifted)] md:grid-cols-[0.8fr_1.2fr]">
                     <div className="relative min-h-[240px] bg-primary-soft">
                       {settings.founder_photo_url ? (
-                        <img src={settings.founder_photo_url} alt={settings.founder_name} className="absolute inset-0 h-full w-full object-cover" />
+                        <MediaImage src={settings.founder_photo_url} alt={settings.founder_name} className="absolute inset-0 h-full w-full object-cover" />
                       ) : (
                         <div className="flex h-full min-h-[240px] w-full items-center justify-center">
                           <span className="font-heading text-6xl font-bold text-primary/40">
@@ -266,7 +267,7 @@ function About() {
                         <article key={s.id} className="rounded-2xl border border-border bg-card p-6 text-center shadow-[var(--shadow-soft)]">
                           <div className="mx-auto h-24 w-24 overflow-hidden rounded-full bg-primary-soft">
                             {s.photo_url ? (
-                              <img src={s.photo_url} alt={s.full_name} className="h-full w-full object-cover" loading="lazy" />
+                              <MediaImage src={s.photo_url} alt={s.full_name} className="h-full w-full object-cover" />
                             ) : (
                               <div className="flex h-full w-full items-center justify-center font-heading text-2xl font-bold text-primary">
                                 {s.full_name.split(" ").map((n) => n[0]).slice(0, 2).join("")}

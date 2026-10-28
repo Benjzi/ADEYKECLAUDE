@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient, useMutation, queryOptions } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { signMediaUrlsBatch } from "@/lib/media-url";
+import { signMediaUrlsBatch, IMG } from "@/lib/media-url";
 
 export type SiteSettings = {
   org_name: string;
@@ -86,6 +86,12 @@ export type SiteSettings = {
 
   featured_videos: { title: string; url: string }[];
   videos_heading: string | null;
+
+  // Homepage feature banner (admin-managed). Hidden unless enabled AND an image is set.
+  feature_banner_enabled: boolean;
+  feature_banner_image_url: string | null;
+  feature_banner_title: string | null;
+  feature_banner_description: string | null;
 };
 
 /**
@@ -181,6 +187,11 @@ export const DEFAULT_SETTINGS: SiteSettings = {
 
   featured_videos: [],
   videos_heading: "Watch our story",
+
+  feature_banner_enabled: true,
+  feature_banner_image_url: null,
+  feature_banner_title: null,
+  feature_banner_description: null,
 };
 
 export async function getSiteSettings(): Promise<SiteSettings> {
@@ -195,13 +206,21 @@ export async function getSiteSettings(): Promise<SiteSettings> {
   // (logo, favicon, hero photos, founder/testimony photos) did not, so
   // they'd silently stop loading a week after being uploaded. Re-sign them
   // all here, every time settings are fetched, so they never go stale.
-  const singleFields: (keyof SiteSettings)[] = ["logo_url", "favicon_url", "hero_image_url", "footer_logo_url", "founder_photo_url", "testimony_photo_url"];
-  const singleValues = singleFields.map((f) => (merged[f] as string | null) ?? null);
-  const [signedSingles, signedSlideshow] = await Promise.all([
-    signMediaUrlsBatch(singleValues),
-    signMediaUrlsBatch(merged.hero_slideshow ?? []),
+  const sign = (fields: (keyof SiteSettings)[], transform: Parameters<typeof signMediaUrlsBatch>[1]) =>
+    signMediaUrlsBatch(fields.map((f) => (merged[f] as string | null) ?? null), transform);
+  const logoFields: (keyof SiteSettings)[] = ["logo_url", "favicon_url", "footer_logo_url"];
+  const photoFields: (keyof SiteSettings)[] = ["founder_photo_url", "testimony_photo_url"];
+  const [logos, photos, [heroImage], [banner], signedSlideshow] = await Promise.all([
+    sign(logoFields, IMG.logo),
+    sign(photoFields, IMG.full),
+    sign(["hero_image_url"], IMG.hero),
+    sign(["feature_banner_image_url"], IMG.banner),
+    signMediaUrlsBatch(merged.hero_slideshow ?? [], IMG.hero),
   ]);
-  singleFields.forEach((f, i) => { (merged as any)[f] = signedSingles[i]; });
+  logoFields.forEach((f, i) => { (merged as any)[f] = logos[i]; });
+  photoFields.forEach((f, i) => { (merged as any)[f] = photos[i]; });
+  merged.hero_image_url = heroImage;
+  merged.feature_banner_image_url = banner;
   merged.hero_slideshow = signedSlideshow.filter((u): u is string => !!u);
 
   return merged;
@@ -278,7 +297,7 @@ const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(mi
  * (removes the inline overrides so the stylesheet's own values apply). */
 export function applyThemeColor(hex: string | null | undefined) {
   const root = document.documentElement;
-  const vars = ["--primary", "--primary-dark", "--primary-soft", "--ring", "--sidebar-primary", "--sidebar-ring"];
+  const vars = ["--primary", "--primary-dark", "--primary-soft", "--ring", "--sidebar-primary", "--sidebar-ring", "--brand", "--brand-deep"];
   if (!hex) {
     vars.forEach((v) => root.style.removeProperty(v));
     return;
@@ -292,6 +311,9 @@ export function applyThemeColor(hex: string | null | undefined) {
   root.style.setProperty("--ring", `hsl(${h} ${s}% 48%)`);
   root.style.setProperty("--sidebar-primary", `hsl(${h} ${s}% 48%)`);
   root.style.setProperty("--sidebar-ring", `hsl(${h} ${s}% 48%)`);
+  // Dark, text-safe surfaces in the same hue (used by heroes / CTA bands in both themes).
+  root.style.setProperty("--brand", `hsl(${h} ${s}% 34%)`);
+  root.style.setProperty("--brand-deep", `hsl(${h} ${s}% 24%)`);
 }
 
 /** Applies the full theme decision:
@@ -307,15 +329,19 @@ export function applyThemeMode(mode: "brand" | "custom" | "sunshine", customColo
     root.style.setProperty("--ring", "hsl(199 89% 48%)");
     root.style.setProperty("--sidebar-primary", "hsl(199 89% 48%)");
     root.style.setProperty("--sidebar-ring", "hsl(199 89% 48%)");
+    root.style.setProperty("--brand", "hsl(199 85% 34%)");
+    root.style.setProperty("--brand-deep", "hsl(199 85% 24%)");
     root.style.setProperty("--accent", "hsl(14 90% 60%)");           // warm coral
     root.style.setProperty("--accent-dark", "hsl(14 85% 50%)");
     root.style.setProperty("--accent-foreground", "hsl(0 0% 100%)");
-    root.style.setProperty("--background", "hsl(40 60% 98%)");       // warm cream
-    root.style.setProperty("--muted", "hsl(40 45% 95%)");
+    // Cream background/muted live in CSS ([data-palette="sunshine"]:not(.dark))
+    // so they never override dark mode.
+    root.dataset.palette = "sunshine";
     return;
   }
   const vars = ["--accent", "--accent-dark", "--accent-foreground", "--background", "--muted"];
   vars.forEach((v) => root.style.removeProperty(v));
+  delete root.dataset.palette;
   if (mode === "custom" && customColor) applyThemeColor(customColor);
   else applyThemeColor(null);
 }
@@ -339,10 +365,27 @@ export const THEME_PRESETS: { name: string; hex: string }[] = [
   { name: "Slate", hex: "#475569" },
 ];
 
+const BANNER_KEYS = [
+  "feature_banner_enabled",
+  "feature_banner_image_url",
+  "feature_banner_title",
+  "feature_banner_description",
+] as const;
+
 export async function updateSiteSettings(patch: Partial<SiteSettings>) {
   const { error } = await (supabase.from as any)("site_settings").update(patch).eq("id", 1);
-  if (error) throw new Error(error.message);
-  return { ok: true };
+  if (!error) return { ok: true, bannerSaved: true };
+  // If the banner migration hasn't been applied yet, the update is rejected
+  // for the unknown column. Save everything else so the rest of the admin
+  // keeps working, and tell the caller the banner part was not stored.
+  if (/feature_banner/i.test(error.message)) {
+    const rest: Record<string, unknown> = { ...patch };
+    BANNER_KEYS.forEach((k) => delete rest[k]);
+    const retry = await (supabase.from as any)("site_settings").update(rest).eq("id", 1);
+    if (retry.error) throw new Error(retry.error.message);
+    return { ok: true, bannerSaved: false };
+  }
+  throw new Error(error.message);
 }
 
 export function useUpdateSiteSettings() {
