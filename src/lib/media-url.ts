@@ -59,17 +59,45 @@ export type Transform = {
 /** Size presets by where an image is shown. Photos are uploaded at full
  * resolution but are never displayed that large. Widths include ~2x for
  * high-density screens at the sizes the layout actually renders. */
+// Few distinct sizes on purpose: every new (path, width, quality) combination
+// is rendered on demand the first time it's requested, then CDN-cached.
+const LARGE: Transform = { width: 1600, quality: 75 };
 export const IMG = {
-  hero: { width: 1600, quality: 76 },
-  full: { width: 1280, quality: 75 },
+  hero: LARGE,
+  full: LARGE,
+  banner: LARGE,
   card: { width: 720, quality: 72 },
-  thumb: { width: 560, quality: 70 },
+  thumb: { width: 720, quality: 72 },
   avatar: { width: 480, quality: 74 },
   logo: { width: 360, quality: 80 },
-  banner: { width: 1600, quality: 78 },
 } as const satisfies Record<string, Transform>;
 
 const DEFAULT_TRANSFORM: Transform = IMG.full;
+
+/** If the image-resize endpoint keeps failing (e.g. not enabled on the
+ * Supabase plan), stop asking for resized URLs for the rest of this tab
+ * session instead of paying a failed request per image on every page. */
+const OFF_KEY = "adeycp-img-transform-off";
+let transformsOff = false;
+try {
+  transformsOff = sessionStorage.getItem(OFF_KEY) === "1";
+} catch {
+  /* storage unavailable */
+}
+const failedRenders = new Set<string>();
+
+export function reportRenderFailure(url: string) {
+  failedRenders.add(url.split("?")[0]);
+  if (failedRenders.size >= 2 && !transformsOff) {
+    transformsOff = true;
+    try {
+      sessionStorage.setItem(OFF_KEY, "1");
+    } catch {
+      /* ignore */
+    }
+    cache.clear(); // later signs get plain URLs
+  }
+}
 
 type CacheEntry = { promise: Promise<string | null>; at: number };
 const cache = new Map<string, CacheEntry>();
@@ -79,6 +107,10 @@ function cacheKey(path: string, t: Transform) {
 }
 
 async function signOne(path: string, transform: Transform): Promise<string | null> {
+  if (transformsOff || Object.keys(transform).length === 0) {
+    const plain = await supabase.storage.from(BUCKET).createSignedUrl(path, SIGN_TTL);
+    return !plain.error && plain.data ? plain.data.signedUrl : null;
+  }
   const withTransform = await supabase.storage
     .from(BUCKET)
     .createSignedUrl(path, SIGN_TTL, { transform });
@@ -138,16 +170,14 @@ export async function resolveField<T>(
   return rows.map((row, i) => ({ ...row, [key]: signed[i] }));
 }
 
-/** The un-resized original for a transformed signed URL (used as a one-shot
- * fallback if the image-transform endpoint is unavailable). Returns null if
- * the URL is not a render URL. */
-export function originalFromRenderUrl(url: string): string | null {
-  if (!url.includes("/render/image/sign/")) return null;
-  try {
-    const u = new URL(url);
-    u.pathname = u.pathname.replace("/render/image/sign/", "/object/sign/");
-    return u.toString();
-  } catch {
-    return null;
-  }
+/** A freshly signed URL for the un-resized original of an image (used as
+ * the fallback when a resized variant can't be loaded). */
+export async function signOriginal(stored: string): Promise<string | null> {
+  const path = extractPath(stored);
+  if (!path) return null;
+  return signCached(path, {});
+}
+
+export function isRenderUrl(url: string): boolean {
+  return url.includes("/render/image/");
 }
