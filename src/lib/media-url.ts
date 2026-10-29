@@ -1,29 +1,31 @@
 import { supabase } from "@/integrations/supabase/client";
 
 /**
- * Client-side helpers to resolve stored media URLs to signed URLs.
- * The `media` bucket is private, so images must be served via signed URLs.
+ * Resolves stored media references to image URLs.
  *
- * Why this file is shaped the way it is (image-loading root cause):
+ * TWO MODES
  *
- * 1. Resizing only works if the *signing request* asks for it. The batch
- *    `createSignedUrls` API has no transform option and returns raw
- *    `/object/sign/...` URLs, which serve the full-resolution original
- *    (up to 8 MB). Appending `?width=` to those URLs is ignored by the
- *    server. Large baseline JPEGs paint top-to-bottom while they download,
- *    which is the "image slowly revealing itself" effect. So every image is
- *    now signed individually with a `transform`, which makes the server
- *    return a `/render/image/sign/...` URL for a resized, re-compressed copy.
+ * 1. PUBLIC (default, fastest). Site images are served from stable public
+ *    URLs (`/storage/v1/render/image/public/media/<path>?width=…`). They
+ *    need no signing round-trip, never expire, and — crucially — every
+ *    visitor gets the SAME URL, so Supabase's CDN keeps a warm copy at the
+ *    edge near the visitor and the browser can cache it across visits.
+ *    Requires the `media` bucket to be public (see the migration
+ *    20261029000000_public_media_bucket.sql).
  *
- * 2. A freshly minted signed URL is a *different URL* every time (new
- *    token), so re-signing on every settings/query refetch defeated the
- *    browser cache and remounted <img> elements. Signed URLs are now cached
- *    per path + size for most of their lifetime, so the same image keeps the
- *    same URL for the whole session.
+ * 2. SIGNED (automatic fallback). If public URLs fail (bucket still
+ *    private), the app learns that and uses signed URLs instead. Every signed
+ *    URL carries a unique token, so the CDN can't share a cached copy between
+ *    visitors — this is the slow path, kept only so nothing ever breaks.
  *
- * 3. The upload path stores a signed URL in the database. `extractPath`
- *    must recognise *render* URLs too, otherwise an uploaded image is never
- *    re-signed and silently breaks when its 7-day token expires.
+ * Other things this file takes care of:
+ *  - Resizing only works if the request asks for it (signed: pass a
+ *    `transform` when signing; public: query params). Batch
+ *    `createSignedUrls` can't resize and serves the multi-MB original.
+ *  - URLs are stable for a session (signed ones are cached per path+size) so
+ *    the browser cache is hit and <img> elements aren't remounted.
+ *  - `extractPath` understands every URL form we've ever stored (object /
+ *    render, public / sign), so old rows keep working and get re-resolved.
  */
 
 const BUCKET = "media";
@@ -74,43 +76,75 @@ export const IMG = {
 
 const DEFAULT_TRANSFORM: Transform = IMG.full;
 
-/** If the image-resize endpoint keeps failing (e.g. not enabled on the
- * Supabase plan), stop asking for resized URLs instead of paying a failed
- * request per image on every page. The decision is remembered for 6 hours
- * across visits (so returning visitors never pay the failed attempts), then
- * re-tested in case the plan changed.
+/** Learned, remembered "this doesn't work here" flags. Two distinct
+ * failures flip a flag; it is remembered across visits for a while (so
+ * returning visitors never pay the failed attempts), then re-tested.
  *
- * Owners can also force it with the build-time setting
- * VITE_IMAGE_TRANSFORMS=off (never resize) or =on (always try).
+ * Build-time overrides:
+ *   VITE_IMAGE_TRANSFORMS = "off" | "on"   (never / always try resized images)
+ *   VITE_MEDIA_PUBLIC     = "off" | "on"   (never / always use public URLs)
  */
-const OFF_KEY = "adeycp-img-transform-off";
-const OFF_TTL_MS = 6 * 60 * 60 * 1000;
-const FORCED = import.meta.env.VITE_IMAGE_TRANSFORMS as string | undefined;
+const FORCED_TRANSFORMS = import.meta.env.VITE_IMAGE_TRANSFORMS as string | undefined;
+const FORCED_PUBLIC = import.meta.env.VITE_MEDIA_PUBLIC as string | undefined;
 
-function readOff(): boolean {
-  if (FORCED === "off") return true;
-  if (FORCED === "on") return false;
+function learnedFlag(key: string, ttlMs: number): boolean {
   try {
-    const at = Number(localStorage.getItem(OFF_KEY));
-    return Number.isFinite(at) && at > 0 && Date.now() - at < OFF_TTL_MS;
+    const at = Number(localStorage.getItem(key));
+    return Number.isFinite(at) && at > 0 && Date.now() - at < ttlMs;
   } catch {
     return false;
   }
 }
-let transformsOff = readOff();
+function rememberFlag(key: string) {
+  try {
+    localStorage.setItem(key, String(Date.now()));
+  } catch {
+    /* storage unavailable */
+  }
+}
+
+const TRANSFORMS_KEY = "adeycp-img-transform-off";
+const PUBLIC_KEY = "adeycp-media-public-off";
+let transformsOff =
+  FORCED_TRANSFORMS === "off" ||
+  (FORCED_TRANSFORMS !== "on" && learnedFlag(TRANSFORMS_KEY, 6 * 60 * 60 * 1000));
+// Shorter memory for the public flag so a bucket that has just been made
+// public is picked up quickly.
+let publicOff =
+  FORCED_PUBLIC === "off" || (FORCED_PUBLIC !== "on" && learnedFlag(PUBLIC_KEY, 20 * 60 * 1000));
+
 const failedRenders = new Set<string>();
+const failedPublic = new Set<string>();
 
 export function reportRenderFailure(url: string) {
   failedRenders.add(url.split("?")[0]);
-  if (failedRenders.size >= 2 && !transformsOff) {
+  if (failedRenders.size >= 2 && !transformsOff && FORCED_TRANSFORMS !== "on") {
     transformsOff = true;
-    try {
-      localStorage.setItem(OFF_KEY, String(Date.now()));
-    } catch {
-      /* ignore */
-    }
-    cache.clear(); // later signs get plain URLs
+    rememberFlag(TRANSFORMS_KEY);
+    cache.clear();
   }
+}
+
+export function reportPublicFailure(url: string) {
+  failedPublic.add(url.split("?")[0]);
+  if (failedPublic.size >= 2 && !publicOff && FORCED_PUBLIC !== "on") {
+    publicOff = true;
+    rememberFlag(PUBLIC_KEY);
+    cache.clear();
+  }
+}
+
+/** Which URL form is currently in use (cached data is only reused for the
+ * same form, so a stale public URL is never replayed in signed mode). */
+export function mediaMode(): "public" | "signed" {
+  return publicOff ? "signed" : "public";
+}
+
+/** Stable, CDN-cacheable public URL (no network call). */
+function publicUrl(path: string, transform: Transform): string {
+  const useResize = !transformsOff && !!transform.width;
+  return supabase.storage.from(BUCKET).getPublicUrl(path, useResize ? { transform } : undefined)
+    .data.publicUrl;
 }
 
 type CacheEntry = { promise: Promise<string | null>; at: number };
@@ -148,13 +182,18 @@ function signCached(path: string, transform: Transform): Promise<string | null> 
   return promise;
 }
 
+/** Resolve one path to a URL: instant public URL, or a signed one. */
+function resolvePath(path: string, transform: Transform): Promise<string | null> | string {
+  return publicOff ? signCached(path, transform) : publicUrl(path, transform);
+}
+
 export async function signMediaUrl(
   stored: string | null,
   transform: Transform = DEFAULT_TRANSFORM,
 ): Promise<string | null> {
   const path = extractPath(stored);
   if (!path) return stored;
-  return (await signCached(path, transform)) ?? stored;
+  return (await resolvePath(path, transform)) ?? stored;
 }
 
 export async function signMediaUrlsBatch(
@@ -165,7 +204,7 @@ export async function signMediaUrlsBatch(
   const uniquePaths = Array.from(new Set(paths.filter((p): p is string => !!p)));
   if (uniquePaths.length === 0) return stored;
   const entries = await Promise.all(
-    uniquePaths.map(async (p) => [p, await signCached(p, transform)] as const),
+    uniquePaths.map(async (p) => [p, await resolvePath(p, transform)] as const),
   );
   const map = new Map(entries);
   return paths.map((p, i) => (p && map.get(p)) || stored[i]);
@@ -184,14 +223,86 @@ export async function resolveField<T>(
   return rows.map((row, i) => ({ ...row, [key]: signed[i] }));
 }
 
-/** A freshly signed URL for the un-resized original of an image (used as
- * the fallback when a resized variant can't be loaded). */
+export type UrlKind = "public" | "signed-render" | "plain";
+
+export function classifyUrl(url: string): UrlKind {
+  if (/\/(?:object|render\/image)\/public\//.test(url)) return "public";
+  if (url.includes("/render/image/")) return "signed-render";
+  return "plain";
+}
+
+/** A freshly signed URL for the un-resized original of an image. */
 export async function signOriginal(stored: string): Promise<string | null> {
   const path = extractPath(stored);
   if (!path) return null;
   return signCached(path, {});
 }
 
-export function isRenderUrl(url: string): boolean {
-  return url.includes("/render/image/");
+/** Is the public (un-resized) file reachable? Distinguishes "the bucket isn't
+ * public" from "the bucket is public but resizing isn't available". */
+async function publicFileReachable(url: string): Promise<boolean> {
+  try {
+    const ctrl = new AbortController();
+    const t = window.setTimeout(() => ctrl.abort(), 4000);
+    const res = await fetch(url, { method: "HEAD", signal: ctrl.signal });
+    window.clearTimeout(t);
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+/** Next thing to try after `failedUrl` failed to load, or null if there is
+ * nothing better.
+ *   public resized → public original (if the bucket is public: resizing is
+ *                    what's unavailable) → signed resized (bucket is private)
+ *   public original → signed original
+ *   signed resized  → signed original */
+export async function recoverUrl(failedUrl: string): Promise<string | null> {
+  const kind = classifyUrl(failedUrl);
+  const path = extractPath(failedUrl);
+  if (!path) return null;
+  if (kind === "public") {
+    const q = new URL(failedUrl).searchParams;
+    const width = Number(q.get("width")) || undefined;
+    const quality = Number(q.get("quality")) || undefined;
+    if (failedUrl.includes("/render/image/")) {
+      const original = publicUrl(path, {}); // `{}` → plain /object/public URL
+      if (await publicFileReachable(original)) {
+        reportRenderFailure(failedUrl); // bucket is public → resizing is the problem
+        return original;
+      }
+      reportPublicFailure(failedUrl); // bucket is private → use signed URLs
+      return signCached(path, width ? { width, quality } : {});
+    }
+    reportPublicFailure(failedUrl);
+    return signCached(path, {});
+  }
+  if (kind === "signed-render") {
+    reportRenderFailure(failedUrl);
+    return signCached(path, {});
+  }
+  return null;
+}
+
+/** Responsive candidates for a public resized URL, so phones don't download
+ * desktop-sized images. Returns undefined if `url` isn't a resizable URL. */
+export function responsiveSrcSet(url: string): string | undefined {
+  if (classifyUrl(url) !== "public" || !url.includes("/render/image/")) return undefined;
+  let u: URL;
+  try {
+    u = new URL(url);
+  } catch {
+    return undefined;
+  }
+  const max = Number(u.searchParams.get("width"));
+  if (!max) return undefined;
+  const widths = Array.from(new Set([480, 800, 1200, 1600].filter((w) => w < max).concat(max)));
+  if (widths.length < 2) return undefined;
+  return widths
+    .map((w) => {
+      u.searchParams.set("width", String(w));
+      return `${u.toString()} ${w}w`;
+    })
+    .join(", ");
 }

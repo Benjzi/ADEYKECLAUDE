@@ -1,0 +1,14 @@
+-- Make the `media` bucket public so site images are served from stable,
+-- CDN-cacheable URLs (/storage/v1/object/public/media/... and
+-- /storage/v1/render/image/public/media/...) instead of per-visitor signed
+-- URLs. A signed URL carries a unique token, so the CDN can never reuse a
+-- cached copy between visitors; a public URL is the same for everyone, so the
+-- edge server nearest the visitor has it warm.
+--
+-- These are the website's own images, and anyone holding the anon key could
+-- already sign any path (see "Media: public read"), so nothing becomes more
+-- exposed. Files are still named with random UUIDs. Writes/deletes stay
+-- restricted to editors by the existing storage policies.
+--
+-- To revert:  update storage.buckets set public = false where id = 'media';
+update storage.buckets set public = true where id = 'media';

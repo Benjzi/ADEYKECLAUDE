@@ -121,7 +121,7 @@ function FeaturedNewsCard({ item }: { item: NewsListItem }) {
     >
       <div className="relative aspect-[16/10] w-full overflow-hidden bg-muted md:aspect-auto md:min-h-[360px]">
         {item.cover_image_url ? (
-          <MediaImage src={item.cover_image_url} alt="" className="h-full w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-110" />
+          <MediaImage sizes="(min-width: 1024px) 400px, (min-width: 640px) 50vw, 100vw" src={item.cover_image_url} alt="" className="h-full w-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-110" />
         ) : (
           <div className="h-full w-full bg-gradient-to-br from-primary/20 to-accent/20" />
         )}
@@ -158,7 +158,7 @@ function NewsCard({ item }: { item: NewsListItem }) {
     >
       {item.cover_image_url ? (
         <div className="aspect-[16/10] w-full overflow-hidden bg-muted">
-          <MediaImage src={item.cover_image_url} alt="" className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" />
+          <MediaImage sizes="(min-width: 1024px) 400px, (min-width: 640px) 50vw, 100vw" src={item.cover_image_url} alt="" className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" />
         </div>
       ) : (
         <div className="aspect-[16/10] w-full bg-gradient-to-br from-primary/10 to-accent/20" />
@@ -196,7 +196,7 @@ function EventRow({ item, muted }: { item: EventListItem; muted?: boolean }) {
 
       {item.cover_image_url ? (
         <div className="h-40 w-full shrink-0 overflow-hidden bg-muted sm:h-auto sm:w-56">
-          <MediaImage src={item.cover_image_url} alt="" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+          <MediaImage sizes="(min-width: 1024px) 400px, (min-width: 640px) 50vw, 100vw" src={item.cover_image_url} alt="" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
         </div>
       ) : null}
 

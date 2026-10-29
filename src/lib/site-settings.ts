@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient, useMutation, queryOptions } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { signMediaUrlsBatch, IMG } from "@/lib/media-url";
+import { signMediaUrlsBatch, mediaMode, IMG } from "@/lib/media-url";
 
 export type SiteSettings = {
   org_name: string;
@@ -101,7 +101,8 @@ export type SiteSettings = {
  */
 export const DEFAULT_SETTINGS: SiteSettings = {
   org_name: "Adey CP Humanitarian Association",
-  short_description: "Walking alongside children with Cerebral Palsy and their families across Ethiopia.",
+  short_description:
+    "Walking alongside children with Cerebral Palsy and their families across Ethiopia.",
   long_description: null,
   mission: null,
   vision: null,
@@ -123,17 +124,21 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   hero_image_url: null,
   footer_logo_url: null,
   seo_title: "Adey CP Humanitarian Association — Every Child Deserves to Thrive",
-  seo_description: "We walk alongside children with Cerebral Palsy and their families across Ethiopia.",
+  seo_description:
+    "We walk alongside children with Cerebral Palsy and their families across Ethiopia.",
   seo_keywords: null,
   stat_children_supported: "1,200+",
   stat_years_of_impact: "9 Years",
   stat_partner_clinics: "14",
   stat_volunteers_staff: "40+",
   hero_heading: "Every Child Deserves to Thrive",
-  hero_subtext: "We walk alongside children with Cerebral Palsy and their families across Ethiopia — providing therapy, dignity, community, and a future full of possibility.",
+  hero_subtext:
+    "We walk alongside children with Cerebral Palsy and their families across Ethiopia — providing therapy, dignity, community, and a future full of possibility.",
   cta_heading: "Be part of a child's next chapter.",
-  cta_subtext: "Your gift funds therapy, learning materials, and family support that change lives — every birr, dollar and euro reaches a child.",
-  footer_text: "Adey CP Humanitarian Association walks alongside children with Cerebral Palsy and their families across Ethiopia.",
+  cta_subtext:
+    "Your gift funds therapy, learning materials, and family support that change lives — every birr, dollar and euro reaches a child.",
+  footer_text:
+    "Adey CP Humanitarian Association walks alongside children with Cerebral Palsy and their families across Ethiopia.",
   copyright_text: `© ${new Date().getFullYear()} Adey CP Humanitarian Association. All rights reserved.`,
   donation_info: null,
 
@@ -195,7 +200,10 @@ export const DEFAULT_SETTINGS: SiteSettings = {
 };
 
 export async function getSiteSettings(): Promise<SiteSettings> {
-  const { data, error } = await (supabase.from as any)("site_settings").select("*").eq("id", 1).maybeSingle();
+  const { data, error } = await (supabase.from as any)("site_settings")
+    .select("*")
+    .eq("id", 1)
+    .maybeSingle();
   if (error) throw new Error(error.message);
   if (!data) return DEFAULT_SETTINGS;
   const merged = { ...DEFAULT_SETTINGS, ...data };
@@ -206,8 +214,14 @@ export async function getSiteSettings(): Promise<SiteSettings> {
   // (logo, favicon, hero photos, founder/testimony photos) did not, so
   // they'd silently stop loading a week after being uploaded. Re-sign them
   // all here, every time settings are fetched, so they never go stale.
-  const sign = (fields: (keyof SiteSettings)[], transform: Parameters<typeof signMediaUrlsBatch>[1]) =>
-    signMediaUrlsBatch(fields.map((f) => (merged[f] as string | null) ?? null), transform);
+  const sign = (
+    fields: (keyof SiteSettings)[],
+    transform: Parameters<typeof signMediaUrlsBatch>[1],
+  ) =>
+    signMediaUrlsBatch(
+      fields.map((f) => (merged[f] as string | null) ?? null),
+      transform,
+    );
   const logoFields: (keyof SiteSettings)[] = ["logo_url", "favicon_url", "footer_logo_url"];
   const photoFields: (keyof SiteSettings)[] = ["founder_photo_url", "testimony_photo_url"];
   const [logos, photos, [heroImage], [banner], signedSlideshow] = await Promise.all([
@@ -217,8 +231,12 @@ export async function getSiteSettings(): Promise<SiteSettings> {
     sign(["feature_banner_image_url"], IMG.banner),
     signMediaUrlsBatch(merged.hero_slideshow ?? [], IMG.hero),
   ]);
-  logoFields.forEach((f, i) => { (merged as any)[f] = logos[i]; });
-  photoFields.forEach((f, i) => { (merged as any)[f] = photos[i]; });
+  logoFields.forEach((f, i) => {
+    (merged as any)[f] = logos[i];
+  });
+  photoFields.forEach((f, i) => {
+    (merged as any)[f] = photos[i];
+  });
   merged.hero_image_url = heroImage;
   merged.feature_banner_image_url = banner;
   merged.hero_slideshow = signedSlideshow.filter((u): u is string => !!u);
@@ -226,10 +244,47 @@ export async function getSiteSettings(): Promise<SiteSettings> {
   return merged;
 }
 
+// Last-known settings are kept in localStorage so a returning visitor's page
+// (text, hero image URLs) renders immediately from the cache while fresh
+// settings load in the background — instead of waiting on the network first.
+// index.html reads the same entry to start downloading the hero image before
+// the JavaScript bundle has even loaded.
+const SETTINGS_CACHE_KEY = "adeycp-settings-v1";
+
+function readSettingsCache(): { data: SiteSettings; at: number } | undefined {
+  try {
+    const raw = localStorage.getItem(SETTINGS_CACHE_KEY);
+    if (!raw) return undefined;
+    const parsed = JSON.parse(raw) as { data?: SiteSettings; at?: number; mode?: string };
+    if (!parsed?.data || typeof parsed.at !== "number") return undefined;
+    if (parsed.mode !== mediaMode()) return undefined;
+    return { data: { ...DEFAULT_SETTINGS, ...parsed.data }, at: parsed.at };
+  } catch {
+    return undefined;
+  }
+}
+
+function writeSettingsCache(data: SiteSettings) {
+  try {
+    localStorage.setItem(SETTINGS_CACHE_KEY, JSON.stringify({ data, at: Date.now(), mode: mediaMode() }));
+  } catch {
+    /* storage full/unavailable — the cache is only an optimisation */
+  }
+}
+
 export const siteSettingsQuery = queryOptions({
   queryKey: ["public", "site-settings"],
-  queryFn: getSiteSettings,
+  queryFn: async () => {
+    const data = await getSiteSettings();
+    writeSettingsCache(data);
+    return data;
+  },
   staleTime: 60_000,
+  initialData: () => readSettingsCache()?.data,
+  // Cached data renders instantly but is always treated as stale, so a fresh
+  // copy is fetched in the background on every page load (admin changes show
+  // up right away instead of after staleTime).
+  initialDataUpdatedAt: () => (readSettingsCache() ? 0 : undefined),
 });
 
 /** Non-suspense hook: always returns a usable object immediately (defaults
@@ -252,13 +307,17 @@ const SOCIAL_BASE: Record<string, string> = {
 
 /** Accepts either a full URL or a bare "@handle"/"handle" and returns a
  * clickable link. Lets admins paste either format into Website Settings. */
-export function socialHref(kind: keyof typeof SOCIAL_BASE, value: string | null | undefined): string | null {
+export function socialHref(
+  kind: keyof typeof SOCIAL_BASE,
+  value: string | null | undefined,
+): string | null {
   if (!value) return null;
   const trimmed = value.trim();
   if (!trimmed) return null;
   if (/^https?:\/\//i.test(trimmed)) return trimmed;
   const handle = trimmed.replace(/^@/, "");
-  if (kind === "youtube" && !handle.startsWith("channel/")) return `${SOCIAL_BASE.youtube}@${handle}`;
+  if (kind === "youtube" && !handle.startsWith("channel/"))
+    return `${SOCIAL_BASE.youtube}@${handle}`;
   return `${SOCIAL_BASE[kind]}${handle}`;
 }
 
@@ -269,20 +328,33 @@ export function socialHref(kind: keyof typeof SOCIAL_BASE, value: string | null 
 function hexToHsl(hex: string): { h: number; s: number; l: number } | null {
   const m = hex.trim().replace("#", "");
   if (!/^([0-9a-fA-F]{6}|[0-9a-fA-F]{3})$/.test(m)) return null;
-  const full = m.length === 3 ? m.split("").map((c) => c + c).join("") : m;
+  const full =
+    m.length === 3
+      ? m
+          .split("")
+          .map((c) => c + c)
+          .join("")
+      : m;
   const r = parseInt(full.slice(0, 2), 16) / 255;
   const g = parseInt(full.slice(2, 4), 16) / 255;
   const b = parseInt(full.slice(4, 6), 16) / 255;
-  const max = Math.max(r, g, b), min = Math.min(r, g, b);
-  let h = 0, s = 0;
+  const max = Math.max(r, g, b),
+    min = Math.min(r, g, b);
+  let h = 0,
+    s = 0;
   const l = (max + min) / 2;
   const d = max - min;
   if (d !== 0) {
     s = d / (1 - Math.abs(2 * l - 1));
     switch (max) {
-      case r: h = ((g - b) / d) % 6; break;
-      case g: h = (b - r) / d + 2; break;
-      default: h = (r - g) / d + 4;
+      case r:
+        h = ((g - b) / d) % 6;
+        break;
+      case g:
+        h = (b - r) / d + 2;
+        break;
+      default:
+        h = (r - g) / d + 4;
     }
     h *= 60;
     if (h < 0) h += 360;
@@ -297,7 +369,16 @@ const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(mi
  * (removes the inline overrides so the stylesheet's own values apply). */
 export function applyThemeColor(hex: string | null | undefined) {
   const root = document.documentElement;
-  const vars = ["--primary", "--primary-dark", "--primary-soft", "--ring", "--sidebar-primary", "--sidebar-ring", "--brand", "--brand-deep"];
+  const vars = [
+    "--primary",
+    "--primary-dark",
+    "--primary-soft",
+    "--ring",
+    "--sidebar-primary",
+    "--sidebar-ring",
+    "--brand",
+    "--brand-deep",
+  ];
   if (!hex) {
     vars.forEach((v) => root.style.removeProperty(v));
     return;
@@ -320,10 +401,13 @@ export function applyThemeColor(hex: string | null | undefined) {
  * - 'brand': resets to the stylesheet's navy + gold defaults
  * - 'custom': applies the admin's chosen single accent color
  * - 'sunshine': a distinct, brighter built-in palette (sky blue + coral + cream) */
-export function applyThemeMode(mode: "brand" | "custom" | "sunshine", customColor: string | null | undefined) {
+export function applyThemeMode(
+  mode: "brand" | "custom" | "sunshine",
+  customColor: string | null | undefined,
+) {
   const root = document.documentElement;
   if (mode === "sunshine") {
-    root.style.setProperty("--primary", "hsl(199 89% 48%)");        // bright sky blue
+    root.style.setProperty("--primary", "hsl(199 89% 48%)"); // bright sky blue
     root.style.setProperty("--primary-dark", "hsl(199 85% 38%)");
     root.style.setProperty("--primary-soft", "hsl(199 90% 95%)");
     root.style.setProperty("--ring", "hsl(199 89% 48%)");
@@ -331,7 +415,7 @@ export function applyThemeMode(mode: "brand" | "custom" | "sunshine", customColo
     root.style.setProperty("--sidebar-ring", "hsl(199 89% 48%)");
     root.style.setProperty("--brand", "hsl(199 85% 34%)");
     root.style.setProperty("--brand-deep", "hsl(199 85% 24%)");
-    root.style.setProperty("--accent", "hsl(14 90% 60%)");           // warm coral
+    root.style.setProperty("--accent", "hsl(14 90% 60%)"); // warm coral
     root.style.setProperty("--accent-dark", "hsl(14 85% 50%)");
     root.style.setProperty("--accent-foreground", "hsl(0 0% 100%)");
     // Cream background/muted live in CSS ([data-palette="sunshine"]:not(.dark))

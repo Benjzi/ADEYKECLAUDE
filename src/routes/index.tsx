@@ -278,7 +278,7 @@ function Home() {
                 >
                   <div className="relative aspect-[16/10] overflow-hidden bg-muted">
                     {e.cover_image_url ? (
-                      <MediaImage src={e.cover_image_url} alt="" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                      <MediaImage sizes="(min-width: 1024px) 400px, (min-width: 640px) 50vw, 100vw" src={e.cover_image_url} alt="" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
                     ) : (
                       <div className="h-full w-full bg-gradient-to-br from-primary/20 to-accent/20" />
                     )}
@@ -329,7 +329,7 @@ function Home() {
                 >
                   <div className="aspect-[16/10] w-full overflow-hidden bg-muted">
                     {n.cover_image_url ? (
-                      <MediaImage src={n.cover_image_url} alt="" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                      <MediaImage sizes="(min-width: 1024px) 400px, (min-width: 640px) 50vw, 100vw" src={n.cover_image_url} alt="" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
                     ) : (
                       <div className="h-full w-full bg-gradient-to-br from-primary/10 to-accent/20" />
                     )}

@@ -15,6 +15,33 @@
       html { background: #fff; }
       html.dark { background: #12162b; }
     </style>
+    <script>
+      /* Returning visitors: start downloading the homepage hero image now,
+         before the JS bundle loads (URL comes from the cached site settings). */
+      (function () {
+        try {
+          if (location.pathname !== "/") return;
+          var c = JSON.parse(localStorage.getItem("adeycp-settings-v1") || "null");
+          var u = c && c.data && c.data.hero_slideshow && c.data.hero_slideshow[0];
+          if (!u) return;
+          // Skip if we've learned public URLs don't work here (private bucket).
+          var off = +localStorage.getItem("adeycp-media-public-off") || 0;
+          if (u.indexOf("/public/") > -1 && Date.now() - off < 20 * 60 * 1000) return;
+          var l = document.createElement("link");
+          l.rel = "preload"; l.as = "image"; l.href = u;
+          l.setAttribute("fetchpriority", "high");
+          var m = u.match(/([?&]width=)(\d+)/);
+          if (m && u.indexOf("/render/image/public/") > -1) {
+            // Same candidates MediaImage offers, so the preload matches the
+            // image the browser will actually pick (no double download).
+            var max = +m[2], ws = [480, 800, 1200, 1600].filter(function (w) { return w < max; }).concat(max);
+            l.setAttribute("imagesrcset", ws.map(function (w) { return u.replace(/([?&]width=)\d+/, "$1" + w) + " " + w + "w"; }).join(", "));
+            l.setAttribute("imagesizes", "100vw");
+          }
+          document.head.appendChild(l);
+        } catch (e) {}
+      })();
+    </script>
     <title>Adey CP Humanitarian Association — Every Child Deserves to Thrive</title>
     <meta name="description" content="Adey CP walks alongside children with Cerebral Palsy and their families across Ethiopia — providing therapy, dignity, community, and a future full of possibility." />
     <meta name="author" content="Adey CP Humanitarian Association" />

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { MediaImage } from "./MediaImage";
 
@@ -27,6 +27,12 @@ export function HeroSlideshow({ images, altPrefix }: { images: string[]; altPref
     return () => clearInterval(t);
   }, [slides.length]);
 
+  // The slide-to-slide crossfade only applies once the slideshow has actually
+  // moved. The first slide must appear the instant its image has arrived, not
+  // fade in over 1.4 s after it is already downloaded.
+  const moved = useRef(false);
+  if (index !== 0) moved.current = true;
+
   if (slides.length === 0) return null;
 
   return (
@@ -41,8 +47,12 @@ export function HeroSlideshow({ images, altPrefix }: { images: string[]; altPref
             src={src}
             alt={`${altPrefix} ${i + 1}`}
             priority={i === 0}
-            className={`absolute inset-0 h-full w-full object-cover transition-all duration-[1400ms] ease-out motion-reduce:transition-none ${
-              i === index ? "translate-x-0 opacity-100 scale-105" : i < index ? "-translate-x-6 opacity-0" : "translate-x-6 opacity-0"
+            className={`absolute inset-0 h-full w-full object-cover ${moved.current ? "transition-all duration-[1400ms] ease-out motion-reduce:transition-none" : ""} ${
+              i === index
+                ? "translate-x-0 opacity-100 scale-105"
+                : i < index
+                  ? "-translate-x-6 opacity-0"
+                  : "translate-x-6 opacity-0"
             }`}
           />
         ) : null,
@@ -53,12 +63,16 @@ export function HeroSlideshow({ images, altPrefix }: { images: string[]; altPref
             onClick={() => setIndex((i) => (i - 1 + slides.length) % slides.length)}
             aria-label="Previous photo"
             className="absolute right-16 top-1/2 z-10 hidden -translate-y-1/2 items-center justify-center rounded-full border border-white/30 bg-black/20 p-2 text-white backdrop-blur transition hover:bg-black/40 md:flex"
-          ><ChevronLeft className="h-5 w-5" /></button>
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </button>
           <button
             onClick={() => setIndex((i) => (i + 1) % slides.length)}
             aria-label="Next photo"
             className="absolute right-4 top-1/2 z-10 hidden -translate-y-1/2 items-center justify-center rounded-full border border-white/30 bg-black/20 p-2 text-white backdrop-blur transition hover:bg-black/40 md:flex"
-          ><ChevronRight className="h-5 w-5" /></button>
+          >
+            <ChevronRight className="h-5 w-5" />
+          </button>
           <div className="absolute bottom-3 left-1/2 z-10 flex -translate-x-1/2 gap-1.5">
             {slides.map((_, i) => (
               <button

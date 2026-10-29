@@ -32,7 +32,7 @@ export function AlbumCard({ album, onOpen, large }: { album: Album; onOpen: () =
             <div className="absolute inset-1 rotate-2 rounded-xl bg-card/80 ring-1 ring-border" />
           </>
         ) : null}
-        <MediaImage
+        <MediaImage sizes="(min-width: 1024px) 300px, 50vw"
           src={cover}
           alt={album.name}
           className="relative h-full w-full rounded-xl object-cover transition-transform duration-500 group-hover:scale-[1.04]"
@@ -104,7 +104,7 @@ export function AlbumViewer({ album, onClose }: { album: Album; onClose: () => v
                 onClick={() => setLightbox(idx)}
                 className="group aspect-square overflow-hidden rounded-xl bg-muted"
               >
-                <MediaImage
+                <MediaImage sizes="(min-width: 1024px) 300px, 50vw"
                   src={item.image_url}
                   alt={item.title ?? album.name}
                   className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.05]"
