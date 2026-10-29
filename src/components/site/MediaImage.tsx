@@ -70,12 +70,12 @@ export function MediaImage({
     failures.current += 1;
     const n = failures.current;
     if (!usingOriginal.current && isRenderUrl(current)) {
+      reportRenderFailure(src); // two distinct failures switch resizing off
       if (n === 1) {
         // Probably a hiccup: retry the same resized URL shortly.
         timer.current = window.setTimeout(() => setCurrent(withRetryParam(src, n)), 700);
         return;
       }
-      reportRenderFailure(src);
       usingOriginal.current = true;
       failures.current = 0;
       void signOriginal(src).then((url) => {

@@ -75,15 +75,29 @@ export const IMG = {
 const DEFAULT_TRANSFORM: Transform = IMG.full;
 
 /** If the image-resize endpoint keeps failing (e.g. not enabled on the
- * Supabase plan), stop asking for resized URLs for the rest of this tab
- * session instead of paying a failed request per image on every page. */
+ * Supabase plan), stop asking for resized URLs instead of paying a failed
+ * request per image on every page. The decision is remembered for 6 hours
+ * across visits (so returning visitors never pay the failed attempts), then
+ * re-tested in case the plan changed.
+ *
+ * Owners can also force it with the build-time setting
+ * VITE_IMAGE_TRANSFORMS=off (never resize) or =on (always try).
+ */
 const OFF_KEY = "adeycp-img-transform-off";
-let transformsOff = false;
-try {
-  transformsOff = sessionStorage.getItem(OFF_KEY) === "1";
-} catch {
-  /* storage unavailable */
+const OFF_TTL_MS = 6 * 60 * 60 * 1000;
+const FORCED = import.meta.env.VITE_IMAGE_TRANSFORMS as string | undefined;
+
+function readOff(): boolean {
+  if (FORCED === "off") return true;
+  if (FORCED === "on") return false;
+  try {
+    const at = Number(localStorage.getItem(OFF_KEY));
+    return Number.isFinite(at) && at > 0 && Date.now() - at < OFF_TTL_MS;
+  } catch {
+    return false;
+  }
 }
+let transformsOff = readOff();
 const failedRenders = new Set<string>();
 
 export function reportRenderFailure(url: string) {
@@ -91,7 +105,7 @@ export function reportRenderFailure(url: string) {
   if (failedRenders.size >= 2 && !transformsOff) {
     transformsOff = true;
     try {
-      sessionStorage.setItem(OFF_KEY, "1");
+      localStorage.setItem(OFF_KEY, String(Date.now()));
     } catch {
       /* ignore */
     }
