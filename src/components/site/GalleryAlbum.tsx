@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { X, ChevronLeft, ChevronRight, Camera, Images } from "lucide-react";
 import type { GalleryItemPublic } from "@/lib/cms-public";
 import { MediaImage } from "./MediaImage";
+import { Lightbox } from "./Lightbox";
 
 export type Album = {
   id: string;
@@ -13,7 +14,15 @@ export type Album = {
 
 /** A single album card: one thumbnail + a photo-count badge, like a stacked
  * photo pile. Click opens the full AlbumViewer with every photo. */
-export function AlbumCard({ album, onOpen, large }: { album: Album; onOpen: () => void; large?: boolean }) {
+export function AlbumCard({
+  album,
+  onOpen,
+  large,
+}: {
+  album: Album;
+  onOpen: () => void;
+  large?: boolean;
+}) {
   const cover = album.cover_image_url || album.items[0]?.image_url;
   const total = album.items.length;
   if (!cover) return null;
@@ -24,7 +33,9 @@ export function AlbumCard({ album, onOpen, large }: { album: Album; onOpen: () =
       className="group h-full w-full text-left"
       aria-label={`Open album ${album.name} (${total} photo${total === 1 ? "" : "s"})`}
     >
-      <div className={`relative h-full w-full overflow-hidden rounded-2xl bg-muted shadow-[var(--shadow-card)] ${large ? "" : "aspect-square"}`}>
+      <div
+        className={`relative h-full w-full overflow-hidden rounded-2xl bg-muted shadow-[var(--shadow-card)] ${large ? "" : "aspect-square"}`}
+      >
         {/* stacked-photo effect when there's more than one image */}
         {total > 1 ? (
           <>
@@ -32,7 +43,8 @@ export function AlbumCard({ album, onOpen, large }: { album: Album; onOpen: () =
             <div className="absolute inset-1 rotate-2 rounded-xl bg-card/80 ring-1 ring-border" />
           </>
         ) : null}
-        <MediaImage sizes="(min-width: 1024px) 300px, 50vw"
+        <MediaImage
+          sizes="(min-width: 1024px) 300px, 50vw"
           src={cover}
           alt={album.name}
           className="relative h-full w-full rounded-xl object-cover transition-transform duration-500 group-hover:scale-[1.04]"
@@ -49,8 +61,14 @@ export function AlbumCard({ album, onOpen, large }: { album: Album; onOpen: () =
           </div>
         ) : null}
         <div className="absolute inset-x-0 bottom-0 p-3">
-          <div className={`font-heading font-bold text-white drop-shadow ${large ? "text-xl md:text-2xl" : "text-sm sm:text-base"}`}>{album.name}</div>
-          {large && album.description ? <div className="mt-1 line-clamp-1 text-sm text-white/80">{album.description}</div> : null}
+          <div
+            className={`font-heading font-bold text-white drop-shadow ${large ? "text-xl md:text-2xl" : "text-sm sm:text-base"}`}
+          >
+            {album.name}
+          </div>
+          {large && album.description ? (
+            <div className="mt-1 line-clamp-1 text-sm text-white/80">{album.description}</div>
+          ) : null}
         </div>
       </div>
     </button>
@@ -81,8 +99,12 @@ export function AlbumViewer({ album, onClose }: { album: Album; onClose: () => v
       <div className="flex items-center justify-between gap-4 border-b border-border bg-card px-4 py-4 sm:px-8">
         <div className="min-w-0">
           <div className="text-xs font-bold uppercase tracking-[0.2em] text-accent-dark">Album</div>
-          <h2 className="truncate font-heading text-xl font-bold text-ink sm:text-2xl">{album.name}</h2>
-          {album.description ? <p className="mt-0.5 line-clamp-1 text-sm text-body">{album.description}</p> : null}
+          <h2 className="truncate font-heading text-xl font-bold text-ink sm:text-2xl">
+            {album.name}
+          </h2>
+          {album.description ? (
+            <p className="mt-0.5 line-clamp-1 text-sm text-body">{album.description}</p>
+          ) : null}
         </div>
         <button
           onClick={onClose}
@@ -104,7 +126,8 @@ export function AlbumViewer({ album, onClose }: { album: Album; onClose: () => v
                 onClick={() => setLightbox(idx)}
                 className="group aspect-square overflow-hidden rounded-xl bg-muted"
               >
-                <MediaImage sizes="(min-width: 1024px) 300px, 50vw"
+                <MediaImage
+                  sizes="(min-width: 1024px) 300px, 50vw"
                   src={item.image_url}
                   alt={item.title ?? album.name}
                   className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.05]"
@@ -116,66 +139,29 @@ export function AlbumViewer({ album, onClose }: { album: Album; onClose: () => v
       </div>
 
       {lightbox !== null && album.items[lightbox] ? (
-        <PhotoLightbox items={album.items} index={lightbox} onClose={() => setLightbox(null)} onIndex={setLightbox} />
+        <PhotoLightbox
+          items={album.items}
+          index={lightbox}
+          onClose={() => setLightbox(null)}
+          onIndex={setLightbox}
+        />
       ) : null}
     </div>
   );
 }
 
 export function PhotoLightbox({
-  items, index, onClose, onIndex,
+  items,
+  index,
+  onClose,
+  onIndex,
 }: {
   items: GalleryItemPublic[];
   index: number;
   onClose: () => void;
   onIndex: (i: number) => void;
 }) {
-  const item = items[index];
-  const canPrev = index > 0;
-  const canNext = index < items.length - 1;
-
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      if (e.key === "ArrowRight" && index < items.length - 1) onIndex(index + 1);
-      if (e.key === "ArrowLeft" && index > 0) onIndex(index - 1);
-      if (e.key === "Escape") onClose();
-    }
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [index, items.length, onIndex, onClose]);
-
-  return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/90 p-4 animate-fade-in" onClick={onClose}>
-      <button
-        className="absolute right-4 top-4 rounded-full bg-white/10 p-2 text-white hover:bg-white/20"
-        onClick={(e) => { e.stopPropagation(); onClose(); }}
-        aria-label="Close"
-      ><X className="h-6 w-6" /></button>
-      <button
-        type="button"
-        className="absolute left-4 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/10 p-3 text-white hover:bg-white/20 disabled:pointer-events-none disabled:opacity-30"
-        disabled={!canPrev}
-        onClick={(e) => { e.stopPropagation(); if (canPrev) onIndex(index - 1); }}
-        aria-label="Previous"
-      ><ChevronLeft className="h-6 w-6" /></button>
-      <button
-        type="button"
-        className="absolute right-4 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/10 p-3 text-white hover:bg-white/20 disabled:pointer-events-none disabled:opacity-30"
-        disabled={!canNext}
-        onClick={(e) => { e.stopPropagation(); if (canNext) onIndex(index + 1); }}
-        aria-label="Next"
-      ><ChevronRight className="h-6 w-6" /></button>
-      <figure className="max-h-full max-w-5xl" onClick={(e) => e.stopPropagation()}>
-        <img src={item.image_url} alt={item.title ?? ""} className="max-h-[80vh] w-auto rounded-lg" decoding="async" />
-        {(item.title || item.caption) ? (
-          <figcaption className="mt-4 text-center text-white/90">
-            {item.title ? <div className="font-heading text-lg font-bold">{item.title}</div> : null}
-            {item.caption ? <div className="mt-1 text-sm text-white/70">{item.caption}</div> : null}
-          </figcaption>
-        ) : null}
-      </figure>
-    </div>
-  );
+  return <Lightbox items={items} index={index} onClose={onClose} onIndex={onIndex} />;
 }
 
 export { Camera };

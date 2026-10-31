@@ -1,11 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
-import { Image as ImageIcon, Images } from "lucide-react";
+import { useMemo } from "react";
+import { Image as ImageIcon } from "lucide-react";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { PageHero, EmptyState } from "@/components/site/PageHero";
 import { listPublicGallery } from "@/lib/cms-public";
-import { AlbumCard, AlbumViewer, type Album } from "@/components/site/GalleryAlbum";
+import type { Album } from "@/components/site/GalleryAlbum";
+import { PhotoWall } from "@/components/site/PhotoWall";
 
 const galleryQuery = queryOptions({
   queryKey: ["public", "gallery"],
@@ -16,7 +17,11 @@ export const Route = createFileRoute("/gallery")({
   head: () => ({
     meta: [
       { title: "Gallery — Adey CP" },
-      { name: "description", content: "Photos from Adey CP's therapy sessions, events, and community programs across Ethiopia." },
+      {
+        name: "description",
+        content:
+          "Photos from Adey CP's therapy sessions, events, and community programs across Ethiopia.",
+      },
       { property: "og:title", content: "Gallery — Adey CP" },
       { property: "og:description", content: "Photos from Adey CP's programs across Ethiopia." },
     ],
@@ -32,12 +37,24 @@ export const Route = createFileRoute("/gallery")({
 
 function Gallery() {
   const { data } = useSuspenseQuery(galleryQuery);
-  const [openId, setOpenId] = useState<string | null>(null);
 
   const albums = useMemo<Album[]>(() => {
     const byCat = new Map<string, Album>();
-    for (const c of data.categories) byCat.set(c.id, { id: c.id, name: c.name, description: c.description, cover_image_url: c.cover_image_url, items: [] });
-    const uncategorized: Album = { id: "_uncat", name: "Highlights", description: null, cover_image_url: null, items: [] };
+    for (const c of data.categories)
+      byCat.set(c.id, {
+        id: c.id,
+        name: c.name,
+        description: c.description,
+        cover_image_url: c.cover_image_url,
+        items: [],
+      });
+    const uncategorized: Album = {
+      id: "_uncat",
+      name: "Highlights",
+      description: null,
+      cover_image_url: null,
+      items: [],
+    };
     for (const it of data.items) {
       if (it.category_id && byCat.has(it.category_id)) byCat.get(it.category_id)!.items.push(it);
       else uncategorized.items.push(it);
@@ -47,14 +64,19 @@ function Gallery() {
     return list;
   }, [data]);
 
-  const openAlbum = albums.find((a) => a.id === openId) ?? null;
-
   return (
     <SiteLayout>
       <PageHero eyebrow="Gallery" title="Moments from our community.">
-        Every smile, every session, every step forward — captured with the families who make Adey CP what it is. Tap an album to see every photo.
+        Every smile, every session, every step forward — captured with the families who make Adey CP
+        what it is.
+        <span className="mt-5 flex flex-wrap gap-3 text-sm font-semibold text-white">
+          <span className="rounded-full bg-white/10 px-4 py-1.5">{data.items.length} photos</span>
+          <span className="rounded-full bg-white/10 px-4 py-1.5">
+            {albums.length} album{albums.length === 1 ? "" : "s"}
+          </span>
+        </span>
       </PageHero>
-      <section className="section-pad">
+      <section className="section-pad pt-8 md:pt-10">
         <div className="container-adey">
           {data.items.length === 0 ? (
             <EmptyState
@@ -63,21 +85,10 @@ function Gallery() {
               description="Once photos are uploaded from the admin panel, they'll appear here."
             />
           ) : (
-            <div className="grid grid-cols-2 gap-4 auto-rows-[160px] sm:grid-cols-3 md:grid-cols-4 md:auto-rows-[220px]">
-              {albums.map((album, i) => {
-                const featured = i === 0;
-                return (
-                  <div key={album.id} className={featured ? "col-span-2 row-span-2" : ""}>
-                    <AlbumCard album={album} onOpen={() => setOpenId(album.id)} large={featured} />
-                  </div>
-                );
-              })}
-            </div>
+            <PhotoWall albums={albums} />
           )}
         </div>
       </section>
-
-      {openAlbum ? <AlbumViewer album={openAlbum} onClose={() => setOpenId(null)} /> : null}
     </SiteLayout>
   );
 }
