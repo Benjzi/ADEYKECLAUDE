@@ -14,9 +14,13 @@ export function useMembershipCount() {
   return useQuery({
     queryKey: MEMBERSHIP_COUNT_KEY,
     queryFn: getMembershipCount,
-    staleTime: 30_000,
-    // The public count ticks up on its own while the page is open.
-    refetchInterval: 60_000,
+    staleTime: 0,
+    // Live count: re-read every 5 seconds while the tab is visible (paused in
+    // background tabs), and immediately on returning to the tab or reconnecting.
+    refetchInterval: 5_000,
+    refetchIntervalInBackground: false,
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
   });
 }
 
