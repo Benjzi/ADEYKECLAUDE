@@ -1,17 +1,27 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Users, CheckCircle2, ExternalLink, Award, Baby, Heart } from "lucide-react";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { PageHero } from "@/components/site/PageHero";
 import { useSiteSettings } from "@/lib/site-settings";
-import { useMembershipCount, useTotalMembers, submitMembershipRegistration } from "@/lib/membership";
+import {
+  MEMBERSHIP_COUNT_KEY,
+  recordWebsiteRegistration,
+  useGoogleConnected,
+  useTotalMembers,
+} from "@/lib/membership";
 
 export const Route = createFileRoute("/membership")({
   head: () => ({
     meta: [
       { title: "Membership — Adey CP" },
-      { name: "description", content: "Become a member of Adey CP Humanitarian Association and join our community of supporters." },
+      {
+        name: "description",
+        content:
+          "Become a member of Adey CP Humanitarian Association and join our community of supporters.",
+      },
     ],
   }),
   component: Membership,
@@ -24,44 +34,99 @@ function embedUrl(url: string) {
 
 function Membership() {
   const settings = useSiteSettings();
+  const qc = useQueryClient();
   const totalMembers = useTotalMembers(settings.membership_total_offset);
+  const { data: googleConnected } = useGoogleConnected();
   const [submitted, setSubmitted] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
 
-  async function markSubmitted(e: React.FormEvent) {
-    e.preventDefault();
-    setBusy(true);
-    try {
-      await submitMembershipRegistration({ full_name: name, email });
-      setSubmitted(true);
-      toast.success("Thank you for registering!");
-    } catch (err: any) {
-      toast.error(err.message ?? "Could not record your registration");
-    } finally {
-      setBusy(false);
+  const formUrl = settings.membership_form_url ? embedUrl(settings.membership_form_url) : null;
+  const pages = Math.max(1, settings.membership_form_pages || 1);
+
+  // --- Automatic registration counting -------------------------------------
+  // The form lives in a cross-origin iframe, so the page can't read it. But
+  // when someone presses the form's own Submit, Google navigates the iframe to
+  // its "response recorded" screen, which fires the iframe's `load` event
+  // again. Loads: #1 = the form, #2..#pages = further pages of a multi-page
+  // form, #pages+1 = the confirmation screen. Any load after that is a fresh
+  // form ("Submit another response"), so counting starts over.
+  const loads = useRef(0);
+  const lastPing = useRef(0);
+  const timers = useRef<number[]>([]);
+
+  useEffect(() => {
+    loads.current = 0; // new form URL → start counting from scratch
+    setSubmitted(false);
+  }, [formUrl, pages]);
+
+  useEffect(() => () => timers.current.forEach((t) => window.clearTimeout(t)), []);
+
+  const refreshCountSoon = useCallback(() => {
+    qc.invalidateQueries({ queryKey: MEMBERSHIP_COUNT_KEY });
+    // Google confirms a moment later; pick up its (exact) number too.
+    [6000, 20000].forEach((ms) =>
+      timers.current.push(
+        window.setTimeout(() => qc.invalidateQueries({ queryKey: MEMBERSHIP_COUNT_KEY }), ms),
+      ),
+    );
+  }, [qc]);
+
+  const onSubmitted = useCallback(async () => {
+    setSubmitted(true);
+    toast.success("Thank you for registering!");
+    const now = Date.now();
+    const duplicate = now - lastPing.current < 20_000;
+    lastPing.current = now;
+    // Once the form's own script is connected it reports every response
+    // itself (exactly, with name and time) — the page must not add a second one.
+    if (!duplicate && !googleConnected) {
+      try {
+        const total = await recordWebsiteRegistration();
+        if (total !== null) qc.setQueryData(MEMBERSHIP_COUNT_KEY, total);
+      } catch (err) {
+        console.error("Could not record registration", err);
+      }
     }
-  }
+    refreshCountSoon();
+  }, [googleConnected, qc, refreshCountSoon]);
+
+  const onFormLoad = useCallback(() => {
+    loads.current += 1;
+    if (loads.current === pages + 1) {
+      void onSubmitted();
+    } else if (loads.current > pages + 1) {
+      loads.current = 1; // a brand-new form was opened
+      setSubmitted(false);
+    }
+  }, [pages, onSubmitted]);
 
   const stats = [
     { icon: Users, label: "Total Members", value: totalMembers.toLocaleString() },
-    settings.stat_honorable_members ? { icon: Award, label: "Honorable Members", value: settings.stat_honorable_members } : null,
-    settings.stat_common_members ? { icon: Heart, label: "Common Members", value: settings.stat_common_members } : null,
-    settings.stat_children_count ? { icon: Baby, label: "Children Supported", value: settings.stat_children_count } : null,
+    settings.stat_honorable_members
+      ? { icon: Award, label: "Honorable Members", value: settings.stat_honorable_members }
+      : null,
+    settings.stat_common_members
+      ? { icon: Heart, label: "Common Members", value: settings.stat_common_members }
+      : null,
+    settings.stat_children_count
+      ? { icon: Baby, label: "Children Supported", value: settings.stat_children_count }
+      : null,
   ].filter(Boolean) as { icon: typeof Users; label: string; value: string }[];
 
   return (
     <SiteLayout>
       <PageHero eyebrow="Membership" title="Join our community.">
-        Become a member of {settings.org_name} and stand with children with Cerebral Palsy and their families across Ethiopia.
+        Become a member of {settings.org_name} and stand with children with Cerebral Palsy and their
+        families across Ethiopia.
       </PageHero>
 
       <section className="section-pad">
         <div className="container-adey">
           <div className="mx-auto mb-12 grid max-w-3xl grid-cols-2 gap-4 sm:grid-cols-4">
             {stats.map((s) => (
-              <div key={s.label} className="rounded-2xl border border-primary/20 bg-primary-soft/40 p-5 text-center">
+              <div
+                key={s.label}
+                className="rounded-2xl border border-primary/20 bg-primary-soft/40 p-5 text-center"
+              >
                 <s.icon className="mx-auto h-6 w-6 text-primary" />
                 <div className="mt-2 font-heading text-2xl font-bold text-ink">{s.value}</div>
                 <div className="text-xs text-muted-foreground">{s.label}</div>
@@ -69,55 +134,48 @@ function Membership() {
             ))}
           </div>
 
-          {!settings.membership_form_url ? (
+          {!formUrl ? (
             <p className="mx-auto max-w-lg text-center text-sm text-muted-foreground">
-              Our membership registration form is being set up — check back soon, or contact us directly to join.
+              Our membership registration form is being set up — check back soon, or contact us
+              directly to join.
             </p>
           ) : (
-            <div className="mx-auto max-w-2xl">
+            <div className="mx-auto max-w-4xl">
               <div className="overflow-hidden rounded-3xl border border-border bg-card shadow-[var(--shadow-card)]">
                 <iframe
-                  src={embedUrl(settings.membership_form_url)}
+                  key={formUrl}
+                  src={formUrl}
                   title="Membership registration form"
-                  className="h-[760px] w-full"
-                  loading="lazy"
+                  className="block h-[920px] w-full sm:h-[1020px] lg:h-[1180px]"
+                  onLoad={onFormLoad}
                 >
                   Loading…
                 </iframe>
               </div>
 
-              <div className="mt-6 rounded-2xl border border-dashed border-primary/30 bg-primary-soft/20 p-6 text-center">
-                {submitted ? (
-                  <div className="flex flex-col items-center gap-2 text-emerald-700">
-                    <CheckCircle2 className="h-8 w-8" />
-                    <p className="font-semibold">Thanks — your registration has been recorded!</p>
-                  </div>
-                ) : (
-                  <>
-                    <p className="text-sm text-body">Filled out the form above? Let us know so we can count you as a member.</p>
-                    <form onSubmit={markSubmitted} className="mx-auto mt-4 flex max-w-md flex-col gap-2 sm:flex-row">
-                      <input
-                        type="text" placeholder="Your name (optional)" value={name} onChange={(e) => setName(e.target.value)}
-                        className="flex-1 rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-                      />
-                      <input
-                        type="email" placeholder="Your email (optional)" value={email} onChange={(e) => setEmail(e.target.value)}
-                        className="flex-1 rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-                      />
-                      <button type="submit" disabled={busy} className="btn-primary shrink-0 disabled:opacity-60">
-                        {busy ? "Saving…" : "I've submitted the form"}
-                      </button>
-                    </form>
-                  </>
-                )}
-              </div>
+              {submitted ? (
+                <div
+                  role="status"
+                  className="mt-6 flex items-center justify-center gap-3 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-5 text-emerald-700 dark:text-emerald-400"
+                >
+                  <CheckCircle2 className="h-6 w-6 shrink-0" />
+                  <p className="font-semibold">
+                    Thank you — your registration has been recorded and counted!
+                  </p>
+                </div>
+              ) : null}
 
-              <a
-                href={settings.membership_form_url} target="_blank" rel="noreferrer"
-                className="mt-4 flex items-center justify-center gap-1.5 text-sm font-semibold text-primary hover:underline"
-              >
-                Open the form in a new tab <ExternalLink className="h-3.5 w-3.5" />
-              </a>
+              {googleConnected && settings.membership_form_url ? (
+                <a
+                  href={settings.membership_form_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-4 flex items-center justify-center gap-1.5 text-sm font-semibold text-primary hover:underline"
+                >
+                  Form hard to use on your phone? Open it in a new tab{" "}
+                  <ExternalLink className="h-3.5 w-3.5" />
+                </a>
+              ) : null}
             </div>
           )}
         </div>

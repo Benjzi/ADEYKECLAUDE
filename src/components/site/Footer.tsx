@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { Mail, MapPin, Phone, Youtube, Send, Facebook, Instagram, Linkedin } from "lucide-react";
-import logo from "@/assets/adey-logo.png";
+import { BrandLogo } from "./BrandLogo";
 import { useSiteSettings, socialHref } from "@/lib/site-settings";
 
 // TikTok has no lucide icon; use an inline glyph.
@@ -30,7 +30,7 @@ export function Footer() {
       <div className="container-adey grid gap-10 py-16 md:grid-cols-4">
         <div>
           <div className="flex items-center gap-3">
-            <img src={s.footer_logo_url || s.logo_url || logo} alt={s.org_name} className="h-10 w-10 rounded-full object-cover ring-2 ring-accent/60" />
+            <BrandLogo url={s.footer_logo_url || s.logo_url} alt={s.org_name} className="h-10 w-10 ring-2 ring-accent/60" />
             <div>
               <div className="font-heading font-bold text-white">{s.org_name}</div>
             </div>

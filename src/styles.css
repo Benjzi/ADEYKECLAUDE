@@ -341,6 +341,10 @@
    opacity would clash with components that fade/slide their own images. */
 .media-img[data-loaded="false"] { opacity: 0; }
 
+/* Once an uploaded logo has loaded, hide the bundled one beneath it so a
+   transparent upload doesn't show the old logo through. */
+.brand-logo:has(.media-img[data-loaded="true"]) .brand-logo-base { opacity: 0; }
+
 /* Short, restrained cross-fade when the theme is switched. */
 html.theme-switching, html.theme-switching *, html.theme-switching *::before, html.theme-switching *::after {
   transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, fill 0.2s ease, stroke 0.2s ease !important;

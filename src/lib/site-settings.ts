@@ -71,6 +71,8 @@ export type SiteSettings = {
   stat_common_members: string | null;
   stat_children_count: string | null;
   membership_total_offset: number;
+  /** Pages (sections) in the embedded Google Form — see Membership admin. */
+  membership_form_pages: number;
 
   strategic_goals: { title: string; points: string[] }[];
   policy_documents: { title: string; url: string }[];
@@ -177,6 +179,7 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   stat_common_members: null,
   stat_children_count: null,
   membership_total_offset: 0,
+  membership_form_pages: 1,
 
   strategic_goals: [],
   policy_documents: [],
@@ -449,25 +452,26 @@ export const THEME_PRESETS: { name: string; hex: string }[] = [
   { name: "Slate", hex: "#475569" },
 ];
 
-const BANNER_KEYS = [
+// Columns added by later migrations. If the database has not been updated
+// yet, saving them is rejected; we then save everything else so the rest of
+// the admin keeps working, and tell the caller what was skipped.
+const NEW_COLUMN_KEYS = [
   "feature_banner_enabled",
   "feature_banner_image_url",
   "feature_banner_title",
   "feature_banner_description",
+  "membership_form_pages",
 ] as const;
 
 export async function updateSiteSettings(patch: Partial<SiteSettings>) {
   const { error } = await (supabase.from as any)("site_settings").update(patch).eq("id", 1);
-  if (!error) return { ok: true, bannerSaved: true };
-  // If the banner migration hasn't been applied yet, the update is rejected
-  // for the unknown column. Save everything else so the rest of the admin
-  // keeps working, and tell the caller the banner part was not stored.
-  if (/feature_banner/i.test(error.message)) {
+  if (!error) return { ok: true, skippedNewFields: false };
+  if (/feature_banner|membership_form_pages/i.test(error.message)) {
     const rest: Record<string, unknown> = { ...patch };
-    BANNER_KEYS.forEach((k) => delete rest[k]);
+    NEW_COLUMN_KEYS.forEach((k) => delete rest[k]);
     const retry = await (supabase.from as any)("site_settings").update(rest).eq("id", 1);
     if (retry.error) throw new Error(retry.error.message);
-    return { ok: true, bannerSaved: false };
+    return { ok: true, skippedNewFields: true };
   }
   throw new Error(error.message);
 }

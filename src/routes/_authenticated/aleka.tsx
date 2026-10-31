@@ -2,9 +2,9 @@ import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tan
 import { queryOptions, useSuspenseQuery, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { getMyRoles } from "@/lib/cms-admin";
-import { LayoutDashboard, Newspaper, CalendarDays, LogOut, Home, Image as ImageIcon, Users2, Handshake, ShieldCheck, Inbox, Settings as SettingsIcon, HandCoins, Moon, Sun } from "lucide-react";
+import { LayoutDashboard, Newspaper, CalendarDays, LogOut, Home, Image as ImageIcon, Users2, Handshake, ShieldCheck, Inbox, Settings as SettingsIcon, HandCoins, ClipboardList, Moon, Sun } from "lucide-react";
 import { useDarkMode } from "@/lib/dark-mode";
-import logo from "@/assets/adey-logo.png";
+import { BrandLogo } from "@/components/site/BrandLogo";
 import { useSiteSettings } from "@/lib/site-settings";
 
 const rolesQuery = queryOptions({
@@ -34,6 +34,7 @@ const NAV = [
   { to: "/aleka/inbox", label: "Contact Inbox", icon: Inbox, exact: false, adminOnly: false },
   { to: "/aleka/staff", label: "Staff", icon: Users2, exact: false, adminOnly: false },
   { to: "/aleka/partners", label: "Partners", icon: Handshake, exact: false, adminOnly: false },
+  { to: "/aleka/members", label: "Registrations", icon: ClipboardList, exact: false, adminOnly: false },
   { to: "/aleka/donors", label: "Donors", icon: HandCoins, exact: false, adminOnly: true },
   { to: "/aleka/settings", label: "Website Settings", icon: SettingsIcon, exact: false, adminOnly: true },
   { to: "/aleka/users", label: "Users & Roles", icon: ShieldCheck, exact: false, adminOnly: true },
@@ -87,7 +88,7 @@ function AlekaLayout() {
       <aside className="border-r border-border bg-sidebar text-sidebar-foreground md:min-h-screen">
         <div className="border-b border-sidebar-border p-5">
           <Link to="/" className="flex items-center gap-2">
-            <img src={settingsData.logo_url || logo} alt={settingsData.org_name} className="h-8 w-8 rounded-full object-cover ring-1 ring-accent/60" />
+            <BrandLogo url={settingsData.logo_url} alt={settingsData.org_name} className="h-8 w-8 ring-1 ring-accent/60" />
             <span className="font-heading text-lg font-bold text-ink">{settingsData.org_name.split(" ")[0]} · Aleka</span>
           </Link>
           <div className="mt-1 text-[10px] uppercase tracking-widest text-muted-foreground">Admin console</div>

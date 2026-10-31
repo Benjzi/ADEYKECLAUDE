@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { PageHero } from "@/components/site/PageHero";
-import logo from "@/assets/adey-logo.png";
+import { BrandLogo } from "@/components/site/BrandLogo";
 import { useSiteSettings } from "@/lib/site-settings";
 
 export const Route = createFileRoute("/auth")({
@@ -129,7 +129,7 @@ function Auth() {
         <div className="container-adey">
           <div className="mx-auto max-w-sm rounded-2xl border border-border bg-card p-6 shadow-[var(--shadow-card)]">
             <div className="mb-5 flex flex-col items-center text-center">
-              <img src={settings.logo_url || logo} alt={settings.org_name} className="h-16 w-16 rounded-full object-cover ring-2 ring-accent/60" />
+              <BrandLogo url={settings.logo_url} alt={settings.org_name} priority className="h-16 w-16 ring-2 ring-accent/60" />
               <div className="mt-2 text-sm font-semibold text-ink">{settings.org_name}</div>
             </div>
             {recovery ? (

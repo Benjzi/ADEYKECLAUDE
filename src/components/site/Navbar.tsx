@@ -1,7 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Menu, X, Heart } from "lucide-react";
-import logo from "@/assets/adey-logo.png";
+import { BrandLogo } from "./BrandLogo";
 import { useSiteSettings } from "@/lib/site-settings";
 import { ThemeToggle } from "./ThemeToggle";
 
@@ -68,14 +68,7 @@ export function Navbar() {
           className="flex min-w-0 items-center gap-3 rounded-lg"
           aria-label={`${settings.org_name} — home`}
         >
-          <img
-            src={settings.logo_url || logo}
-            alt=""
-            width={40}
-            height={40}
-            decoding="async"
-            className="h-10 w-10 shrink-0 rounded-full object-cover ring-2 ring-accent/60"
-          />
+          <BrandLogo url={settings.logo_url} alt="" priority className="h-10 w-10 ring-2 ring-accent/60" />
           <span className="line-clamp-1 max-w-[11rem] font-heading text-[0.95rem] font-bold leading-tight text-ink sm:max-w-[16rem]">
             {settings.org_name}
           </span>

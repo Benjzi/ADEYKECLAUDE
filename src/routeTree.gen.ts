@@ -31,6 +31,7 @@ import { Route as AuthenticatedAlekaIndexRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAlekaDonorsRouteImport } from './routes/_authenticated/aleka.donors'
 import { Route as AuthenticatedAlekaEventsRouteImport } from './routes/_authenticated/aleka.events'
 import { Route as AuthenticatedAlekaInboxRouteImport } from './routes/_authenticated/aleka.inbox'
+import { Route as AuthenticatedAlekaMembersRouteImport } from './routes/_authenticated/aleka.members'
 import { Route as AuthenticatedAlekaNewsRouteImport } from './routes/_authenticated/aleka.news'
 import { Route as AuthenticatedAlekaPartnersRouteImport } from './routes/_authenticated/aleka.partners'
 import { Route as AuthenticatedAlekaSettingsRouteImport } from './routes/_authenticated/aleka.settings'
@@ -150,6 +151,12 @@ const AuthenticatedAlekaInboxRoute = AuthenticatedAlekaInboxRouteImport.update({
   path: '/inbox',
   getParentRoute: () => AuthenticatedAlekaRoute,
 } as any)
+const AuthenticatedAlekaMembersRoute =
+  AuthenticatedAlekaMembersRouteImport.update({
+    id: '/members',
+    path: '/members',
+    getParentRoute: () => AuthenticatedAlekaRoute,
+  } as any)
 const AuthenticatedAlekaNewsRoute = AuthenticatedAlekaNewsRouteImport.update({
   id: '/news',
   path: '/news',
@@ -211,6 +218,7 @@ export interface FileRoutesByFullPath {
   '/aleka/donors': typeof AuthenticatedAlekaDonorsRoute
   '/aleka/events': typeof AuthenticatedAlekaEventsRoute
   '/aleka/inbox': typeof AuthenticatedAlekaInboxRoute
+  '/aleka/members': typeof AuthenticatedAlekaMembersRoute
   '/aleka/news': typeof AuthenticatedAlekaNewsRoute
   '/aleka/partners': typeof AuthenticatedAlekaPartnersRoute
   '/aleka/settings': typeof AuthenticatedAlekaSettingsRoute
@@ -240,6 +248,7 @@ export interface FileRoutesByTo {
   '/aleka/donors': typeof AuthenticatedAlekaDonorsRoute
   '/aleka/events': typeof AuthenticatedAlekaEventsRoute
   '/aleka/inbox': typeof AuthenticatedAlekaInboxRoute
+  '/aleka/members': typeof AuthenticatedAlekaMembersRoute
   '/aleka/news': typeof AuthenticatedAlekaNewsRoute
   '/aleka/partners': typeof AuthenticatedAlekaPartnersRoute
   '/aleka/settings': typeof AuthenticatedAlekaSettingsRoute
@@ -272,6 +281,7 @@ export interface FileRoutesById {
   '/_authenticated/aleka/donors': typeof AuthenticatedAlekaDonorsRoute
   '/_authenticated/aleka/events': typeof AuthenticatedAlekaEventsRoute
   '/_authenticated/aleka/inbox': typeof AuthenticatedAlekaInboxRoute
+  '/_authenticated/aleka/members': typeof AuthenticatedAlekaMembersRoute
   '/_authenticated/aleka/news': typeof AuthenticatedAlekaNewsRoute
   '/_authenticated/aleka/partners': typeof AuthenticatedAlekaPartnersRoute
   '/_authenticated/aleka/settings': typeof AuthenticatedAlekaSettingsRoute
@@ -304,6 +314,7 @@ export interface FileRouteTypes {
     | '/aleka/donors'
     | '/aleka/events'
     | '/aleka/inbox'
+    | '/aleka/members'
     | '/aleka/news'
     | '/aleka/partners'
     | '/aleka/settings'
@@ -333,6 +344,7 @@ export interface FileRouteTypes {
     | '/aleka/donors'
     | '/aleka/events'
     | '/aleka/inbox'
+    | '/aleka/members'
     | '/aleka/news'
     | '/aleka/partners'
     | '/aleka/settings'
@@ -364,6 +376,7 @@ export interface FileRouteTypes {
     | '/_authenticated/aleka/donors'
     | '/_authenticated/aleka/events'
     | '/_authenticated/aleka/inbox'
+    | '/_authenticated/aleka/members'
     | '/_authenticated/aleka/news'
     | '/_authenticated/aleka/partners'
     | '/_authenticated/aleka/settings'
@@ -549,6 +562,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAlekaInboxRouteImport
       parentRoute: typeof AuthenticatedAlekaRoute
     }
+    '/_authenticated/aleka/members': {
+      id: '/_authenticated/aleka/members'
+      path: '/members'
+      fullPath: '/aleka/members'
+      preLoaderRoute: typeof AuthenticatedAlekaMembersRouteImport
+      parentRoute: typeof AuthenticatedAlekaRoute
+    }
     '/_authenticated/aleka/news': {
       id: '/_authenticated/aleka/news'
       path: '/news'
@@ -605,6 +625,7 @@ interface AuthenticatedAlekaRouteChildren {
   AuthenticatedAlekaDonorsRoute: typeof AuthenticatedAlekaDonorsRoute
   AuthenticatedAlekaEventsRoute: typeof AuthenticatedAlekaEventsRoute
   AuthenticatedAlekaInboxRoute: typeof AuthenticatedAlekaInboxRoute
+  AuthenticatedAlekaMembersRoute: typeof AuthenticatedAlekaMembersRoute
   AuthenticatedAlekaNewsRoute: typeof AuthenticatedAlekaNewsRoute
   AuthenticatedAlekaPartnersRoute: typeof AuthenticatedAlekaPartnersRoute
   AuthenticatedAlekaSettingsRoute: typeof AuthenticatedAlekaSettingsRoute
@@ -619,6 +640,7 @@ const AuthenticatedAlekaRouteChildren: AuthenticatedAlekaRouteChildren = {
   AuthenticatedAlekaDonorsRoute: AuthenticatedAlekaDonorsRoute,
   AuthenticatedAlekaEventsRoute: AuthenticatedAlekaEventsRoute,
   AuthenticatedAlekaInboxRoute: AuthenticatedAlekaInboxRoute,
+  AuthenticatedAlekaMembersRoute: AuthenticatedAlekaMembersRoute,
   AuthenticatedAlekaNewsRoute: AuthenticatedAlekaNewsRoute,
   AuthenticatedAlekaPartnersRoute: AuthenticatedAlekaPartnersRoute,
   AuthenticatedAlekaSettingsRoute: AuthenticatedAlekaSettingsRoute,

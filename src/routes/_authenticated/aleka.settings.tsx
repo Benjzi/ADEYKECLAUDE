@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Save } from "lucide-react";
@@ -132,11 +132,11 @@ function SettingsAdmin() {
 
   function save() {
     mut.mutate(form, {
-      onSuccess: (res: { bannerSaved?: boolean }) => {
-        if (res?.bannerSaved === false) {
+      onSuccess: (res: { skippedNewFields?: boolean }) => {
+        if (res?.skippedNewFields) {
           toast.warning(
-            "Saved, but the Feature Banner was NOT stored: the database needs the new banner columns. Apply the migration supabase/migrations/20261028000000_feature_banner.sql, then save again.",
-            { duration: 12000 },
+            "Saved, but the Feature Banner / membership page-count settings were NOT stored: the database still needs the latest migrations (supabase/migrations/20261028000000_feature_banner.sql and 20261030000000_membership_tracking.sql). Apply them, then save again.",
+            { duration: 14000 },
           );
         } else {
           toast.success("Website settings saved — changes are live everywhere.");
@@ -623,7 +623,22 @@ function SettingsAdmin() {
           </Field>
           <p className="text-xs text-muted-foreground">
             In Google Forms: Send → the <strong>&lt;&gt;</strong> embed icon → copy the URL from the iframe's <code>src</code> (or paste the plain form link — the site will add <code>?embedded=true</code> automatically).
-            The Membership page shows this form and a "Mark as submitted" button people click after filling it out — that's what's counted, since we can't detect real Google Form submissions from an embedded iframe without a Google API integration.
+            There is no second button: the site notices the form's “response recorded” screen and counts the registration (with the time) by itself.
+          </p>
+          <Field label="Pages (sections) in your Google Form">
+            <Input
+              type="number" min={1} max={20} className="max-w-[8rem]"
+              value={form.membership_form_pages ?? 1}
+              onChange={(e) => set("membership_form_pages", Math.min(20, Math.max(1, Number(e.target.value) || 1)))}
+            />
+          </Field>
+          <p className="text-xs text-muted-foreground">
+            Leave at 1 unless the form has “Next” buttons. This lets the site tell the final Submit apart from a Next click.
+          </p>
+          <p className="rounded-xl border border-primary/30 bg-primary-soft/40 p-3 text-xs text-body">
+            <strong>Want names and exact times of everyone who registers?</strong> Connect the form once — open
+            <Link to="/aleka/members" className="mx-1 font-semibold text-primary underline">Registrations</Link>
+            for the 2-minute setup and the full list.
           </p>
 
           <div className="border-t border-border pt-6">
