@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Users, CheckCircle2, ExternalLink, Award, Baby, Heart } from "lucide-react";
+import { Users, Lock, CheckCircle2, ExternalLink, Award, Baby, Heart } from "lucide-react";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { PageHero } from "@/components/site/PageHero";
 import { useSiteSettings } from "@/lib/site-settings";
@@ -38,6 +38,7 @@ function Membership() {
   const totalMembers = useTotalMembers(settings.membership_total_offset);
   const { data: googleConnected } = useGoogleConnected();
   const [submitted, setSubmitted] = useState(false);
+  const [unlocked, setUnlocked] = useState(false);
 
   const formUrl = settings.membership_form_url ? embedUrl(settings.membership_form_url) : null;
   const pages = Math.max(1, settings.membership_form_pages || 1);
@@ -141,16 +142,56 @@ function Membership() {
             </p>
           ) : (
             <div className="mx-auto max-w-4xl">
-              <div className="overflow-hidden rounded-3xl border border-border bg-card shadow-[var(--shadow-card)]">
+              <div className="mx-auto mb-8 max-w-2xl text-center">
+                <h2 className="font-heading text-2xl font-bold text-ink sm:text-3xl">
+                  Become a member
+                </h2>
+                <p className="mt-3 text-body">
+                  Members are the heart of {settings.org_name}. Your registration and contribution
+                  help us support children with Cerebral Palsy and their families. It takes about
+                  two minutes: press the button below to open the registration form, fill it in and
+                  press Submit.
+                </p>
+              </div>
+
+              <div className="relative overflow-hidden rounded-3xl border border-border bg-card shadow-[var(--shadow-card)]">
                 <iframe
                   key={formUrl}
+                  ref={(el) => {
+                    // Locked: the form can't be clicked, tabbed into or read by
+                    // screen readers until the visitor presses the button.
+                    if (!el) return;
+                    if (unlocked) el.removeAttribute("inert");
+                    else el.setAttribute("inert", "");
+                  }}
                   src={formUrl}
                   title="Membership registration form"
-                  className="block h-[920px] w-full sm:h-[1020px] lg:h-[1180px]"
+                  aria-hidden={!unlocked}
+                  className={`block h-[920px] w-full transition-[filter] duration-500 sm:h-[1020px] lg:h-[1180px] ${
+                    unlocked ? "" : "pointer-events-none select-none blur-md"
+                  }`}
                   onLoad={onFormLoad}
                 >
                   Loading…
                 </iframe>
+
+                {!unlocked ? (
+                  <div className="absolute inset-0 flex items-start justify-center bg-background/50 px-4 pt-24 sm:pt-40">
+                    <div className="max-w-md text-center">
+                      <Lock className="mx-auto h-8 w-8 text-primary" aria-hidden />
+                      <p className="mt-3 font-heading text-xl font-bold text-ink">
+                        The registration form is ready
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setUnlocked(true)}
+                        className="btn-accent mt-5 w-full px-8 py-4 text-lg"
+                      >
+                        Click here to open the registration form
+                      </button>
+                    </div>
+                  </div>
+                ) : null}
               </div>
 
               {submitted ? (
